@@ -1,0 +1,87 @@
+
+> workspace@0.0.0 dev
+> vite
+
+
+  [32m[1mVITE[22m v6.4.2[39m  [2mready in [0m[1m553[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+node:internal/fs/watchers:316
+    const error = new UVException({
+                  ^
+
+Error: ENOSPC: System limit for number of file watchers reached, watch '/workspace/.pnpm-store/v10/index/79/89b441606d52b0566561b4777f3a386030d7a67df793e2395a3607b6e35926-clsx@2.1.1.json'
+    at FSWatcher.<computed> (node:internal/fs/watchers:316:19)
+    at Object.watch (node:fs:2537:36)
+    at createFsWatchInstance (file:///workspace/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.17_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:22195:17)
+    at setFsWatchListener (file:///workspace/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.17_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:22242:15)
+    at NodeFsHandler._watchWithNodeFs (file:///workspace/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.17_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:22397:14)
+    at NodeFsHandler._handleFile (file:///workspace/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.17_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:22461:23)
+    at NodeFsHandler._addToNodeFs (file:///workspace/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.17_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:22703:21)
+Emitted 'error' event on FSWatcher instance at:
+    at FSWatcher._handleError (file:///workspace/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.17_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:23896:10)
+    at NodeFsHandler._addToNodeFs (file:///workspace/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.17_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:22711:18) {
+  errno: -28,
+  syscall: 'watch',
+  code: 'ENOSPC',
+  path: '/workspace/.pnpm-store/v10/index/79/89b441606d52b0566561b4777f3a386030d7a67df793e2395a3607b6e35926-clsx@2.1.1.json',
+  filename: '/workspace/.pnpm-store/v10/index/79/89b441606d52b0566561b4777f3a386030d7a67df793e2395a3607b6e35926-clsx@2.1.1.json'
+}
+
+Node.js v24.14.1
+fatal error: all goroutines are asleep - deadlock!
+
+goroutine 1 [chan receive]:
+github.com/evanw/esbuild/internal/helpers.(*ThreadSafeWaitGroup).Wait(...)
+	github.com/evanw/esbuild/internal/helpers/waitgroup.go:36
+main.runService.func2()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:114 +0x51
+main.runService(0x1)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:160 +0x50c
+main.main()
+	github.com/evanw/esbuild/cmd/esbuild/main.go:252 +0xb8b
+
+goroutine 35 [chan receive]:
+main.runService.func1()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:98 +0x45
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:97 +0x1db
+
+goroutine 36 [chan receive]:
+main.(*serviceType).sendRequest(0xc00018e360, {0x9973a0, 0xc0000221e0})
+	github.com/evanw/esbuild/cmd/esbuild/service.go:192 +0x12b
+main.runService.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:125 +0x3e
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:122 +0x30e
+
+goroutine 49 [chan receive]:
+github.com/evanw/esbuild/internal/bundler.(*scanner).scanAllDependencies(0xc000150d88)
+	github.com/evanw/esbuild/internal/bundler/bundler.go:2172 +0x258
+github.com/evanw/esbuild/internal/bundler.ScanBundle(_, {_, _, _, _, _, _}, {_, _}, 0xc00012e300, ...)
+	github.com/evanw/esbuild/internal/bundler/bundler.go:1495 +0xbdc
+github.com/evanw/esbuild/pkg/api.rebuildImpl({0xc00012e300, {0xc000114600, 0x1, 0x1}, {0x0, 0x0, 0x0}, {0x0, 0x1, 0x0, ...}, ...}, ...)
+	github.com/evanw/esbuild/pkg/api/api_impl.go:1493 +0x2e5
+github.com/evanw/esbuild/pkg/api.(*internalContext).rebuild(_)
+	github.com/evanw/esbuild/pkg/api/api_impl.go:1007 +0x29c
+github.com/evanw/esbuild/pkg/api.(*internalContext).Rebuild(0xc000172f08?)
+	github.com/evanw/esbuild/pkg/api/api_impl.go:1068 +0x3d
+main.(*serviceType).handleIncomingPacket.func5()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:293 +0xba
+created by main.(*serviceType).handleIncomingPacket in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:290 +0x11d0
+
+goroutine 8 [chan receive]:
+main.(*serviceType).sendRequest(0xc00018e360, {0x9973a0, 0xc000398c30})
+	github.com/evanw/esbuild/cmd/esbuild/service.go:192 +0x12b
+main.(*serviceType).convertPlugins.func2.4({{0xc000032180, 0x17}, {0xa1711d, 0x4}, {0x0, 0x0}, {0x0, 0x0}, 0x0})
+	github.com/evanw/esbuild/cmd/esbuild/service.go:1088 +0x833
+github.com/evanw/esbuild/pkg/api.(*pluginImpl).onLoad.func1({{0x0, 0x0}, {{0xc000032180, 0x17}, {0xa1711d, 0x4}, {0x0, 0x0}, {{0x0, 0x0}}, ...}})
+	github.com/evanw/esbuild/pkg/api/api_impl.go:2014 +0x190
+github.com/evanw/esbuild/internal/bundler.runOnLoadPlugins({0xc000138370?, 0x0?, 0x10000000000?}, {0xb05120?, 0xc000140680}, 0xc00012e300, {0xc0001e52d0, 0xc0001146a8, 0xc0001146c0, 0xc000140660, ...}, ...)
+	github.com/evanw/esbuild/internal/bundler/bundler.go:1193 +0xcf5
+github.com/evanw/esbuild/internal/bundler.parseFile({{0xb05120, 0xc000140680}, {0xc0001e52d0, 0xc0001146a8, 0xc0001146c0, 0xc000140660, 0x6, 0xc00018edb0}, 0xc000150908, 0xc00012e300, ...})
+	github.com/evanw/esbuild/internal/bundler/bundler.go:163 +0x2b5
+created by github.com/evanw/esbuild/internal/bundler.(*scanner).maybeParseFile in goroutine 49
+	github.com/evanw/esbuild/internal/bundler/bundler.go:1620 +0xdae

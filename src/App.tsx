@@ -16,12 +16,7 @@ function Navigation() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 sm:top-0 sm:bottom-auto sm:left-auto sm:right-auto sm:w-64 sm:h-screen bg-white/80 backdrop-blur-md border-t sm:border-t-0 sm:border-r border-zinc-100 p-4 z-50">
       <div className="flex sm:flex-col justify-around sm:justify-start gap-2 h-full">
-        <div className="hidden sm:flex items-center gap-3 px-4 py-6 mb-8">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-400 shadow-sm flex items-center justify-center">
-            <BookOpen className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-semibold text-zinc-800 tracking-wide">轻日记</span>
-        </div>
+        <div className="hidden sm:block h-8 mb-8"></div>
         
         {navItems.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path;

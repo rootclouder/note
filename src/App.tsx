@@ -82,14 +82,27 @@ function Navigation() {
 
 function App() {
   const { hasSeenWelcome } = useStore();
-  useTheme(); // Initialize theme
+  const { theme } = useTheme(); // Initialize theme
 
   return (
     <Router>
-      <div className="min-h-screen bg-[#fafafa] dark:bg-zinc-950 font-sans text-zinc-900 dark:text-zinc-100 selection:bg-teal-200/50 dark:selection:bg-teal-900/50 transition-colors duration-700">
+      <motion.div 
+        animate={{ 
+          rotate: theme === 'dark' ? 180 : 0,
+          scale: theme === 'dark' ? 1.05 : 1
+        }}
+        transition={{ type: "spring", stiffness: 30, damping: 15 }}
+        className="fixed inset-0 w-[200vw] h-[200vw] -left-[50vw] -top-[50vw] pointer-events-none -z-20 rounded-full"
+        style={{
+          background: theme === 'dark' 
+            ? 'linear-gradient(to bottom, #09090b 50%, #fafafa 50%)' 
+            : 'linear-gradient(to bottom, #fafafa 50%, #09090b 50%)'
+        }}
+      />
+      <div className="min-h-screen font-sans text-zinc-900 dark:text-zinc-100 selection:bg-teal-200/50 dark:selection:bg-teal-900/50 transition-colors duration-700 bg-transparent">
         <Navigation />
         
-        <main className="pb-24 sm:pb-0 sm:pl-64 min-h-screen flex flex-col relative overflow-hidden">
+        <main className="pb-24 sm:pb-0 sm:pl-64 min-h-screen flex flex-col relative overflow-hidden bg-transparent">
           {/* Subtle background decoration */}
           <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-50/50 dark:from-teal-900/20 to-transparent -z-10 transition-colors duration-700" />
           
@@ -101,7 +114,7 @@ function App() {
             </Routes>
           </div>
 
-          <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-8 md:p-12">
+          <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-8 md:p-12 relative z-10">
             <Routes>
               <Route path="/welcome" element={<Welcome />} />
               <Route path="/" element={hasSeenWelcome ? <Home /> : <Navigate to="/welcome" replace />} />

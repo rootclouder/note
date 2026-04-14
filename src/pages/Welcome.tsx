@@ -44,7 +44,7 @@ export default function Welcome() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors duration-700 p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-transparent transition-colors duration-700 p-6">
       {/* Abstract Background Shapes */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal-400/20 dark:bg-teal-900/20 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-400/20 dark:bg-emerald-900/20 rounded-full blur-[100px] pointer-events-none" />

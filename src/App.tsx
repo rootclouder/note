@@ -48,7 +48,7 @@ function Navigation() {
   if (location.pathname === '/welcome') return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 sm:top-0 sm:bottom-auto sm:left-auto sm:right-auto sm:w-64 sm:h-screen bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-t sm:border-t-0 sm:border-r border-zinc-100 dark:border-zinc-800 p-4 z-50 transition-colors duration-500">
+    <nav className="fixed bottom-0 left-0 right-0 sm:top-0 sm:bottom-auto sm:left-auto sm:right-auto sm:w-64 sm:h-screen bg-white/80 dark:bg-black/80 backdrop-blur-md border-t sm:border-t-0 sm:border-r border-zinc-100 dark:border-zinc-900 p-4 z-50 transition-colors duration-500">
       <div className="flex sm:flex-col justify-around sm:justify-start gap-2 h-full sm:pt-8">
         {navItems.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path;
@@ -59,8 +59,8 @@ function Navigation() {
               className={cn(
                 "flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-4 py-3 rounded-2xl transition-all duration-300 group",
                 isActive 
-                  ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md shadow-zinc-900/10 dark:shadow-white/10" 
-                  : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-md shadow-zinc-900/10 dark:shadow-white/10" 
+                  : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white"
               )}
             >
               <Icon className={cn(
@@ -95,8 +95,8 @@ function App() {
         className="fixed inset-0 w-[200vw] h-[200vw] -left-[50vw] -top-[50vw] pointer-events-none -z-20 rounded-full"
         style={{
           background: theme === 'dark' 
-            ? 'linear-gradient(to bottom, #09090b 50%, #fafafa 50%)' 
-            : 'linear-gradient(to bottom, #fafafa 50%, #09090b 50%)'
+            ? 'linear-gradient(to bottom, #000000 50%, #fafafa 50%)' 
+            : 'linear-gradient(to bottom, #fafafa 50%, #000000 50%)'
         }}
       />
       <div className="min-h-screen font-sans text-zinc-900 dark:text-zinc-100 selection:bg-teal-200/50 dark:selection:bg-teal-900/50 transition-colors duration-700 bg-transparent">
@@ -104,7 +104,7 @@ function App() {
         
         <main className="pb-24 sm:pb-0 sm:pl-64 min-h-screen flex flex-col relative overflow-hidden bg-transparent">
           {/* Subtle background decoration */}
-          <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-50/50 dark:from-teal-900/20 to-transparent -z-10 transition-colors duration-700" />
+          <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-50/50 dark:from-teal-900/10 to-transparent -z-10 transition-colors duration-700" />
           
           {/* Mobile Theme Toggle */}
           <div className="sm:hidden fixed top-4 right-4 z-50">

@@ -199,20 +199,20 @@ export default function Home() {
             {/* Todo Snippet */}
             <div 
               onClick={() => navigate(`/todo?date=${selectedDateStr}`)}
-              className="group cursor-pointer bg-zinc-900 dark:bg-zinc-100 rounded-[2rem] p-6 shadow-lg shadow-zinc-900/10 dark:shadow-white/5 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+              className="group cursor-pointer bg-zinc-900 dark:bg-zinc-800 rounded-[2rem] p-6 shadow-lg shadow-zinc-900/10 dark:shadow-black/20 hover:shadow-xl transition-all duration-300 relative overflow-hidden border dark:border-zinc-700/50"
             >
-              <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/5 dark:bg-black/5 rounded-full blur-2xl" />
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/5 dark:bg-white/5 rounded-full blur-2xl" />
               
-              <h3 className="font-medium text-white dark:text-zinc-900 mb-4 flex items-center justify-between">
+              <h3 className="font-medium text-white dark:text-zinc-100 mb-4 flex items-center justify-between">
                 待办事项
-                <ChevronRight className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-white dark:group-hover:text-zinc-900 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-white dark:group-hover:text-zinc-300 transition-colors" />
               </h3>
               
               {totalTodosCount > 0 ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-400 dark:text-zinc-500">完成进度</span>
-                    <span className="text-white dark:text-zinc-900 font-medium">{progress}%</span>
+                    <span className="text-zinc-400 dark:text-zinc-400">完成进度</span>
+                    <span className="text-white dark:text-zinc-100 font-medium">{progress}%</span>
                   </div>
                   <div className="h-1.5 w-full bg-white/10 dark:bg-black/10 rounded-full overflow-hidden">
                     <motion.div 

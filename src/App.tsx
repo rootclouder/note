@@ -114,7 +114,7 @@ function App() {
             </Routes>
           </div>
 
-          <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-8 md:p-12 relative z-10">
+          <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-8 md:p-12 relative z-10 flex flex-col">
             <Routes>
               <Route path="/welcome" element={<Welcome />} />
               <Route path="/" element={hasSeenWelcome ? <Home /> : <Navigate to="/welcome" replace />} />

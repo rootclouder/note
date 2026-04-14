@@ -11,10 +11,10 @@ import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const quadrants: { id: Quadrant; title: string; color: string }[] = [
-  { id: 'q1', title: '重要 · 紧急', color: 'bg-orange-50 border-orange-200 text-orange-900' },
-  { id: 'q2', title: '重要 · 不紧急', color: 'bg-teal-50 border-teal-200 text-teal-900' },
-  { id: 'q3', title: '不重要 · 紧急', color: 'bg-blue-50 border-blue-200 text-blue-900' },
-  { id: 'q4', title: '不重要 · 不紧急', color: 'bg-zinc-50 border-zinc-200 text-zinc-900' }
+  { id: 'q1', title: '重要 · 紧急', color: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-900/50 text-orange-900 dark:text-orange-200' },
+  { id: 'q2', title: '重要 · 不紧急', color: 'bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-900/50 text-teal-900 dark:text-teal-200' },
+  { id: 'q3', title: '不重要 · 紧急', color: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50 text-blue-900 dark:text-blue-200' },
+  { id: 'q4', title: '不重要 · 不紧急', color: 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-300' }
 ];
 
 function SortableTodoItem({ todo }: { todo: TodoType }) {
@@ -31,7 +31,7 @@ function SortableTodoItem({ todo }: { todo: TodoType }) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm border border-zinc-100 mb-2 transition-all relative z-10",
+        "group flex items-center gap-3 p-3 bg-white dark:bg-zinc-950 rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-800 mb-2 transition-all relative z-10",
         isDragging && "opacity-50 shadow-md z-50",
         todo.completed && "opacity-60"
       )}
@@ -53,7 +53,7 @@ function SortableTodoItem({ todo }: { todo: TodoType }) {
         onChange={(e) => updateTodo(todo.id, { title: e.target.value })}
         className={cn(
           "flex-1 text-sm outline-none bg-transparent transition-colors",
-          todo.completed ? "line-through text-zinc-400" : "text-zinc-700"
+          todo.completed ? "line-through text-zinc-400 dark:text-zinc-600" : "text-zinc-700 dark:text-zinc-200"
         )}
       />
       
@@ -160,8 +160,8 @@ export default function Todo() {
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">四象限待办</h1>
-          <p className="text-zinc-500 text-sm mt-1 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">四象限待办</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 flex items-center gap-2">
             <CalendarDays className="w-4 h-4" />
             {format(parseISO(currentDate), 'yyyy年M月d日 EEEE', { locale: zhCN })}
           </p>
@@ -181,7 +181,7 @@ export default function Todo() {
                   setIsSearchOpen(true);
                 }}
                 onFocus={() => setIsSearchOpen(true)}
-                className="w-full pl-9 pr-4 py-2.5 bg-white border border-zinc-200 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm placeholder:text-zinc-400"
+                className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100"
               />
             </div>
             
@@ -191,7 +191,7 @@ export default function Todo() {
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 4 }}
-                  className="absolute top-full mt-2 w-full sm:w-80 right-0 bg-white rounded-2xl shadow-xl border border-zinc-100 overflow-hidden"
+                  className="absolute top-full mt-2 w-full sm:w-80 right-0 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden"
                 >
                   {searchResults.length > 0 ? (
                     <div className="max-h-64 overflow-y-auto p-2">
@@ -203,19 +203,19 @@ export default function Todo() {
                             setIsSearchOpen(false);
                             setSearchQuery('');
                           }}
-                          className="w-full text-left px-3 py-2 rounded-xl hover:bg-zinc-50 transition-colors flex flex-col gap-1"
+                          className="w-full text-left px-3 py-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex flex-col gap-1"
                         >
-                          <span className={cn("text-sm font-medium", todo.completed ? "line-through text-zinc-400" : "text-zinc-700")}>
+                          <span className={cn("text-sm font-medium", todo.completed ? "line-through text-zinc-400 dark:text-zinc-600" : "text-zinc-700 dark:text-zinc-200")}>
                             {todo.title || '（未命名任务）'}
                           </span>
-                          <span className="text-xs text-zinc-400">
+                          <span className="text-xs text-zinc-400 dark:text-zinc-500">
                             {format(parseISO(todo.date), 'yyyy年M月d日')} · {quadrants.find(q => q.id === todo.quadrant)?.title}
                           </span>
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4 text-center text-sm text-zinc-500">
+                    <div className="p-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
                       未找到相关待办
                     </div>
                   )}
@@ -225,10 +225,10 @@ export default function Todo() {
           </div>
 
           {/* Calendar Navigation */}
-          <div className="flex items-center gap-1 bg-white border border-zinc-200 p-1 rounded-full shadow-sm">
+          <div className="flex items-center gap-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1 rounded-full shadow-sm">
             <button 
               onClick={prevDay}
-              className="p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-500"
+              className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors text-zinc-500 dark:text-zinc-400"
               title="上一天"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -237,14 +237,14 @@ export default function Todo() {
               onClick={today}
               className={cn(
                 "px-4 py-1.5 text-sm font-medium rounded-full transition-colors",
-                isToday(parseISO(currentDate)) ? "bg-zinc-900 text-white shadow-md shadow-zinc-900/10" : "hover:bg-zinc-100 text-zinc-700"
+                isToday(parseISO(currentDate)) ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md shadow-zinc-900/10 dark:shadow-white/10" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
               )}
             >
               今天
             </button>
             <button 
               onClick={nextDay}
-              className="p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-500"
+              className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors text-zinc-500 dark:text-zinc-400"
               title="下一天"
             >
               <ChevronRight className="w-4 h-4" />

@@ -24,7 +24,13 @@ export interface Diary {
 interface AppState {
   todos: Todo[];
   diaries: Diary[];
+  theme: 'light' | 'dark';
+  hasSeenWelcome: boolean;
   
+  // Theme actions
+  toggleTheme: () => void;
+  setHasSeenWelcome: () => void;
+
   // Todo actions
   addTodo: (todo: Omit<Todo, 'id'>) => void;
   updateTodo: (id: string, updates: Partial<Todo>) => void;
@@ -42,6 +48,11 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       todos: [],
       diaries: [],
+      theme: 'light',
+      hasSeenWelcome: false,
+
+      toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
+      setHasSeenWelcome: () => set({ hasSeenWelcome: true }),
 
       addTodo: (todo) => set((state) => ({
         todos: [...state.todos, { ...todo, id: crypto.randomUUID() }]

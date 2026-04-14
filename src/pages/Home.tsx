@@ -53,13 +53,13 @@ export default function Home() {
       {/* Calendar Section */}
       <div className="flex-1 max-w-2xl">
         <div className="flex items-center justify-between mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white transition-colors">
             {format(currentDate, 'yyyy年 M月', { locale: zhCN })}
           </h1>
           <div className="flex items-center gap-2">
             <button 
               onClick={prevMonth}
-              className="p-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-zinc-900"
+              className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -68,13 +68,13 @@ export default function Home() {
                 setCurrentDate(new Date());
                 setSelectedDate(new Date());
               }}
-              className="px-4 py-2 text-sm font-medium rounded-full bg-zinc-100 hover:bg-zinc-200 transition-colors text-zinc-700"
+              className="px-4 py-2 text-sm font-medium rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-zinc-700 dark:text-zinc-300"
             >
               今天
             </button>
             <button 
               onClick={nextMonth}
-              className="p-2 rounded-full hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-zinc-900"
+              className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -109,9 +109,9 @@ export default function Home() {
                   "relative aspect-square flex flex-col items-center justify-start pt-2 sm:pt-3 rounded-2xl sm:rounded-[2rem] transition-all duration-300",
                   !isCurrentMonth && "opacity-30",
                   isSelected 
-                    ? "bg-zinc-900 text-white shadow-lg shadow-zinc-900/20 scale-105 z-10" 
-                    : "hover:bg-zinc-100/80 bg-white/40 hover:scale-105",
-                  isTodayDate && !isSelected && "text-teal-600 font-bold bg-teal-50/50"
+                    ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-lg shadow-zinc-900/20 dark:shadow-white/10 scale-105 z-10" 
+                    : "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 bg-white/40 dark:bg-zinc-900/40 hover:scale-105",
+                  isTodayDate && !isSelected && "text-teal-600 dark:text-teal-400 font-bold bg-teal-50/50 dark:bg-teal-900/20"
                 )}
               >
                 <span className={cn(
@@ -158,20 +158,20 @@ export default function Home() {
             transition={{ duration: 0.3 }}
             className="flex flex-col gap-6"
           >
-            <div className="flex items-end justify-between border-b border-zinc-200 pb-4">
+            <div className="flex items-end justify-between border-b border-zinc-200 dark:border-zinc-800 pb-4">
               <div>
-                <h2 className="text-2xl font-bold text-zinc-800">
+                <h2 className="text-2xl font-bold text-zinc-800 dark:text-zinc-100">
                   {format(selectedDate, 'M月d日')}
                 </h2>
-                <p className="text-zinc-500 text-sm mt-1">
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
                   {format(selectedDate, 'EEEE', { locale: zhCN })}
                 </p>
               </div>
               
               {dayDiary && (
-                <div className="flex items-center gap-3 bg-white px-3 py-1.5 rounded-full shadow-sm border border-zinc-100">
+                <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-full shadow-sm border border-zinc-100 dark:border-zinc-800">
                   <span className="text-xl" title="心情">{moodEmojis[dayDiary.mood] || moodEmojis.neutral}</span>
-                  <div className="w-px h-4 bg-zinc-200" />
+                  <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700" />
                   <span title="天气">{weatherIcons[dayDiary.weather] || weatherIcons.sunny}</span>
                 </div>
               )}
@@ -180,41 +180,41 @@ export default function Home() {
             {/* Diary Snippet */}
             <div 
               onClick={() => navigate(`/diary?date=${selectedDateStr}`)}
-              className="group cursor-pointer bg-white rounded-[2rem] p-6 shadow-sm border border-zinc-100 hover:shadow-md transition-all duration-300 relative overflow-hidden"
+              className="group cursor-pointer bg-white dark:bg-zinc-900 rounded-[2rem] p-6 shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all duration-300 relative overflow-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <h3 className="font-medium text-zinc-900 mb-2 flex items-center justify-between">
+              <h3 className="font-medium text-zinc-900 dark:text-zinc-100 mb-2 flex items-center justify-between">
                 日记
-                <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors" />
               </h3>
               {dayDiary ? (
-                <p className="text-zinc-600 text-sm line-clamp-3 leading-relaxed">
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm line-clamp-3 leading-relaxed">
                   {dayDiary.content.replace(/[#*`_>]/g, '').trim() || '（无文本内容）'}
                 </p>
               ) : (
-                <p className="text-zinc-400 text-sm italic">今天还没有记录日记，去写一篇吧？</p>
+                <p className="text-zinc-400 dark:text-zinc-600 text-sm italic">今天还没有记录日记，去写一篇吧？</p>
               )}
             </div>
 
             {/* Todo Snippet */}
             <div 
               onClick={() => navigate(`/todo?date=${selectedDateStr}`)}
-              className="group cursor-pointer bg-zinc-900 rounded-[2rem] p-6 shadow-lg shadow-zinc-900/10 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+              className="group cursor-pointer bg-zinc-900 dark:bg-zinc-100 rounded-[2rem] p-6 shadow-lg shadow-zinc-900/10 dark:shadow-white/5 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
             >
-              <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/5 dark:bg-black/5 rounded-full blur-2xl" />
               
-              <h3 className="font-medium text-white mb-4 flex items-center justify-between">
+              <h3 className="font-medium text-white dark:text-zinc-900 mb-4 flex items-center justify-between">
                 待办事项
-                <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+                <ChevronRight className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-white dark:group-hover:text-zinc-900 transition-colors" />
               </h3>
               
               {totalTodosCount > 0 ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-400">完成进度</span>
-                    <span className="text-white font-medium">{progress}%</span>
+                    <span className="text-zinc-400 dark:text-zinc-500">完成进度</span>
+                    <span className="text-white dark:text-zinc-900 font-medium">{progress}%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-white/10 dark:bg-black/10 rounded-full overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
@@ -229,23 +229,23 @@ export default function Home() {
                         {todo.completed ? (
                           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                         ) : (
-                          <Circle className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+                          <Circle className="w-4 h-4 text-zinc-500 dark:text-zinc-400 shrink-0 mt-0.5" />
                         )}
                         <span className={cn(
                           "line-clamp-1",
-                          todo.completed ? "text-zinc-400 line-through" : "text-zinc-200"
+                          todo.completed ? "text-zinc-400 dark:text-zinc-500 line-through" : "text-zinc-200 dark:text-zinc-800"
                         )}>
                           {todo.title}
                         </span>
                       </div>
                     ))}
                     {totalTodosCount > 3 && (
-                      <p className="text-xs text-zinc-500 pl-6">还有 {totalTodosCount - 3} 项...</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 pl-6">还有 {totalTodosCount - 3} 项...</p>
                     )}
                   </div>
                 </div>
               ) : (
-                <p className="text-zinc-400 text-sm">今天没有待办事项，享受轻松的一天吧！</p>
+                <p className="text-zinc-400 dark:text-zinc-500 text-sm">今天没有待办事项，享受轻松的一天吧！</p>
               )}
             </div>
           </motion.div>

@@ -85,8 +85,8 @@ export default function Diary() {
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out max-w-4xl mx-auto w-full">
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">图文日记</h1>
-          <p className="text-zinc-500 text-sm mt-1 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">图文日记</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 flex items-center gap-2">
             <CalendarDays className="w-4 h-4" />
             {format(parseISO(currentDate), 'yyyy年M月d日 EEEE', { locale: zhCN })}
           </p>
@@ -97,12 +97,12 @@ export default function Diary() {
             type="date" 
             value={currentDate}
             onChange={(e) => setCurrentDate(e.target.value)}
-            className="px-4 py-2 bg-white border border-zinc-200 rounded-xl text-sm font-medium text-zinc-700 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
+            className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-300 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
           />
           {existingDiary && (
             <button
               onClick={handleDelete}
-              className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+              className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors"
               title="删除日记"
             >
               <Trash2 className="w-5 h-5" />
@@ -111,20 +111,20 @@ export default function Diary() {
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col bg-white rounded-[2rem] shadow-sm border border-zinc-100 overflow-hidden">
+      <div className="flex-1 flex flex-col bg-white dark:bg-zinc-950 rounded-[2rem] shadow-sm border border-zinc-100 dark:border-zinc-800 overflow-hidden">
         {/* Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-6 border-b border-zinc-100 bg-zinc-50/50">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-6 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">心情</span>
-              <div className="flex gap-1 bg-white p-1 rounded-full shadow-sm border border-zinc-100">
+              <span className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">心情</span>
+              <div className="flex gap-1 bg-white dark:bg-zinc-900 p-1 rounded-full shadow-sm border border-zinc-100 dark:border-zinc-800">
                 {MOODS.map(m => (
                   <button
                     key={m}
                     disabled={!isEditing}
                     onClick={() => setMood(m)}
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all ${
-                      mood === m ? 'bg-teal-50 ring-2 ring-teal-200 scale-110' : 'hover:bg-zinc-50 opacity-50 hover:opacity-100'
+                      mood === m ? 'bg-teal-50 dark:bg-teal-950/50 ring-2 ring-teal-200 dark:ring-teal-900 scale-110' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800 opacity-50 hover:opacity-100'
                     } disabled:cursor-default disabled:hover:bg-transparent`}
                   >
                     {moodEmoji[m]}
@@ -133,18 +133,18 @@ export default function Diary() {
               </div>
             </div>
 
-            <div className="w-px h-8 bg-zinc-200 hidden sm:block" />
+            <div className="w-px h-8 bg-zinc-200 dark:bg-zinc-800 hidden sm:block" />
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">天气</span>
-              <div className="flex gap-1 bg-white p-1 rounded-full shadow-sm border border-zinc-100">
+              <span className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">天气</span>
+              <div className="flex gap-1 bg-white dark:bg-zinc-900 p-1 rounded-full shadow-sm border border-zinc-100 dark:border-zinc-800">
                 {WEATHERS.map(w => (
                   <button
                     key={w}
                     disabled={!isEditing}
                     onClick={() => setWeather(w)}
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all ${
-                      weather === w ? 'bg-blue-50 ring-2 ring-blue-200 scale-110' : 'hover:bg-zinc-50 opacity-50 hover:opacity-100'
+                      weather === w ? 'bg-blue-50 dark:bg-blue-950/50 ring-2 ring-blue-200 dark:ring-blue-900 scale-110' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800 opacity-50 hover:opacity-100'
                     } disabled:cursor-default disabled:hover:bg-transparent`}
                   >
                     {weatherEmoji[w]}
@@ -158,7 +158,7 @@ export default function Diary() {
             {isEditing && (
               <button
                 onClick={handleAddImage}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-600 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors shadow-sm"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
               >
                 <ImageIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">插入图片</span>
@@ -168,8 +168,8 @@ export default function Diary() {
               onClick={() => isEditing ? handleSave() : setIsEditing(true)}
               className={`flex items-center gap-2 px-6 py-2 text-sm font-medium rounded-xl transition-all shadow-sm ${
                 isEditing 
-                  ? 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-zinc-900/10' 
-                  : 'bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50'
+                  ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-white shadow-zinc-900/10 dark:shadow-white/10' 
+                  : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800'
               }`}
             >
               {isEditing ? (
@@ -188,7 +188,7 @@ export default function Diary() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 relative min-h-[500px]" data-color-mode="light">
+        <div className="flex-1 relative min-h-[500px]" data-color-mode={useStore(state => state.theme)}>
           <AnimatePresence mode="wait">
             {isEditing ? (
               <motion.div

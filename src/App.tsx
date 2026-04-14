@@ -91,7 +91,7 @@ function App() {
           rotate: theme === 'dark' ? 180 : 0,
           scale: theme === 'dark' ? 1.05 : 1
         }}
-        transition={{ type: "spring", stiffness: 30, damping: 15 }}
+        transition={{ type: "spring", stiffness: 60, damping: 20 }}
         className="fixed inset-0 w-[200vw] h-[200vw] -left-[50vw] -top-[50vw] pointer-events-none -z-20 rounded-full"
         style={{
           background: theme === 'dark' 

@@ -80,51 +80,79 @@ function Navigation() {
   );
 }
 
-function App() {
+function MainLayout() {
   const { hasSeenWelcome } = useStore();
-  const { theme } = useTheme(); // Initialize theme
+  const location = useLocation();
+  const isWelcome = location.pathname === '/welcome';
+
+  return (
+    <div className="min-h-screen font-sans text-zinc-900 dark:text-zinc-100 selection:bg-teal-200/50 dark:selection:bg-teal-900/50 transition-colors duration-700 bg-transparent">
+      <Navigation />
+      
+      <main className={cn(
+        "min-h-screen flex flex-col relative overflow-hidden bg-transparent transition-all duration-500",
+        !isWelcome && "pb-24 sm:pb-0 sm:pl-64"
+      )}>
+        {/* Subtle background decoration */}
+        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-50/50 dark:from-teal-900/10 to-transparent -z-10 transition-colors duration-700" />
+        
+        {/* Mobile Theme Toggle */}
+        {!isWelcome && (
+          <div className="sm:hidden fixed top-4 right-4 z-50">
+            <ThemeToggle />
+          </div>
+        )}
+
+        <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-8 md:p-12 relative z-10 flex flex-col">
+          <Routes>
+            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/" element={hasSeenWelcome ? <Home /> : <Navigate to="/welcome" replace />} />
+            <Route path="/todo" element={hasSeenWelcome ? <Todo /> : <Navigate to="/welcome" replace />} />
+            <Route path="/diary" element={hasSeenWelcome ? <Diary /> : <Navigate to="/welcome" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  const { theme } = useTheme();
 
   return (
     <Router>
-      <motion.div 
-        animate={{ 
-          rotate: theme === 'dark' ? 180 : 0,
-          scale: theme === 'dark' ? 1.05 : 1
-        }}
-        transition={{ type: "spring", stiffness: 60, damping: 20 }}
-        className="fixed inset-0 w-[200vw] h-[200vw] -left-[50vw] -top-[50vw] pointer-events-none -z-20 rounded-full"
-        style={{
-          background: theme === 'dark' 
-            ? 'linear-gradient(to bottom, #000000 50%, #fafafa 50%)' 
-            : 'linear-gradient(to bottom, #fafafa 50%, #000000 50%)'
-        }}
-      />
-      <div className="min-h-screen font-sans text-zinc-900 dark:text-zinc-100 selection:bg-teal-200/50 dark:selection:bg-teal-900/50 transition-colors duration-700 bg-transparent">
-        <Navigation />
-        
-        <main className="pb-24 sm:pb-0 sm:pl-64 min-h-screen flex flex-col relative overflow-hidden bg-transparent">
-          {/* Subtle background decoration */}
-          <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-50/50 dark:from-teal-900/10 to-transparent -z-10 transition-colors duration-700" />
-          
-          {/* Mobile Theme Toggle */}
-          <div className="sm:hidden fixed top-4 right-4 z-50">
-            <Routes>
-              <Route path="/welcome" element={null} />
-              <Route path="*" element={<ThemeToggle />} />
-            </Routes>
-          </div>
-
-          <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-8 md:p-12 relative z-10 flex flex-col">
-            <Routes>
-              <Route path="/welcome" element={<Welcome />} />
-              <Route path="/" element={hasSeenWelcome ? <Home /> : <Navigate to="/welcome" replace />} />
-              <Route path="/todo" element={hasSeenWelcome ? <Todo /> : <Navigate to="/welcome" replace />} />
-              <Route path="/diary" element={hasSeenWelcome ? <Diary /> : <Navigate to="/welcome" replace />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
-        </main>
+      {/* Background layer with noise and deep gradient */}
+      <div className="fixed inset-0 pointer-events-none -z-30 overflow-hidden bg-zinc-50 dark:bg-black transition-colors duration-1000">
+        <motion.div 
+          initial={false}
+          animate={{ 
+            rotate: theme === 'dark' ? 180 : 0,
+            scale: theme === 'dark' ? 1.1 : 1,
+            opacity: theme === 'dark' ? 1 : 0.6
+          }}
+          transition={{ type: "spring", stiffness: 40, damping: 30 }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vw] h-[150vw] rounded-full blur-[120px] mix-blend-normal"
+          style={{
+            background: theme === 'dark' 
+              ? 'conic-gradient(from 180deg at 50% 50%, #000000 0deg, #0a0a0a 180deg, #000000 360deg)' 
+              : 'conic-gradient(from 0deg at 50% 50%, #f4f4f5 0deg, #ffffff 180deg, #f4f4f5 360deg)'
+          }}
+        />
+        {/* Decorative rotating accent lights */}
+        <motion.div 
+          animate={{ 
+            rotate: theme === 'dark' ? -90 : 90,
+            opacity: theme === 'dark' ? 0.4 : 0.1
+          }}
+          transition={{ type: "spring", stiffness: 30, damping: 40 }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vw] rounded-full blur-[100px] pointer-events-none mix-blend-screen dark:mix-blend-color-dodge"
+          style={{
+            background: 'linear-gradient(to right, rgba(45, 212, 191, 0.5), transparent, rgba(52, 211, 153, 0.5))'
+          }}
+        />
       </div>
+      <MainLayout />
     </Router>
   );
 }

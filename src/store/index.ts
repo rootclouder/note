@@ -84,6 +84,7 @@ interface AppState {
   // Note actions
   createNote: (notebookId: string) => string;
   updateNote: (id: string, updates: Partial<Omit<Note, 'id' | 'notebookId'>>) => void;
+  moveNote: (id: string, notebookId: string) => void;
   deleteNote: (id: string) => void;
 }
 
@@ -364,6 +365,17 @@ export const useStore = create<AppState>()(
 
       updateNote: (id, updates) => set((state) => {
         const apply = (notes: Note[]) => notes.map(n => n.id === id ? { ...n, ...updates, updatedAt: Date.now() } : n);
+        if (state.currentUser) {
+          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          return {
+            users: { ...state.users, [state.currentUser]: { ...userData, notes: apply(userData.notes) } }
+          };
+        }
+        return { notes: apply(state.notes) };
+      }),
+
+      moveNote: (id, notebookId) => set((state) => {
+        const apply = (notes: Note[]) => notes.map(n => n.id === id ? { ...n, notebookId, updatedAt: Date.now() } : n);
         if (state.currentUser) {
           const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
           return {

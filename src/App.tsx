@@ -8,7 +8,7 @@ import Welcome from './pages/Welcome';
 import { cn } from './utils/cn';
 import { useStore } from './store';
 import { useTheme } from './hooks/useTheme';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();

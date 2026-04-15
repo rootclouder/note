@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { useStore, useUserData, Diary as DiaryType } from '../store';
+import { useStore, useUserData } from '../store';
 import { Save, CalendarDays, Trash2, Edit3, Eye, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MDEditor from '@uiw/react-md-editor';

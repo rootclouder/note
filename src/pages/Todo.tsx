@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { format, parseISO, subDays, addDays, isToday } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { GripVertical, Trash2, CalendarDays, CheckCircle2, Circle, ArrowRight, ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { useStore, Quadrant, Todo as TodoType } from '../store';
+import { useStore, useUserData, Quadrant, Todo as TodoType } from '../store';
 import { cn } from '../utils/cn';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -11,10 +11,10 @@ import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const quadrants: { id: Quadrant; title: string; color: string }[] = [
-  { id: 'q1', title: '重要 · 紧急', color: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-900/50 text-orange-900 dark:text-orange-200' },
-  { id: 'q2', title: '重要 · 不紧急', color: 'bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-900/50 text-teal-900 dark:text-teal-200' },
-  { id: 'q3', title: '不重要 · 紧急', color: 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50 text-blue-900 dark:text-blue-200' },
-  { id: 'q4', title: '不重要 · 不紧急', color: 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-300' }
+  { id: 'q1', title: '重要 · 紧急', color: 'bg-orange-50/60 dark:bg-orange-950/40 border-orange-200/50 dark:border-orange-900/50 text-orange-900 dark:text-orange-200 hover:shadow-orange-500/10 dark:hover:shadow-orange-500/5 hover:border-orange-300 dark:hover:border-orange-800/80' },
+  { id: 'q2', title: '重要 · 不紧急', color: 'bg-teal-50/60 dark:bg-teal-950/40 border-teal-200/50 dark:border-teal-900/50 text-teal-900 dark:text-teal-200 hover:shadow-teal-500/10 dark:hover:shadow-teal-500/5 hover:border-teal-300 dark:hover:border-teal-800/80' },
+  { id: 'q3', title: '不重要 · 紧急', color: 'bg-blue-50/60 dark:bg-blue-950/40 border-blue-200/50 dark:border-blue-900/50 text-blue-900 dark:text-blue-200 hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 hover:border-blue-300 dark:hover:border-blue-800/80' },
+  { id: 'q4', title: '不重要 · 不紧急', color: 'bg-zinc-50/60 dark:bg-zinc-900/40 border-zinc-200/50 dark:border-zinc-800/50 text-zinc-900 dark:text-zinc-300 hover:shadow-zinc-500/10 dark:hover:shadow-zinc-500/5 hover:border-zinc-300 dark:hover:border-zinc-700/80' }
 ];
 
 function SortableTodoItem({ todo }: { todo: TodoType }) {
@@ -31,8 +31,8 @@ function SortableTodoItem({ todo }: { todo: TodoType }) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center gap-3 p-3 bg-white dark:bg-zinc-950 rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-800 mb-2 transition-all relative z-10",
-        isDragging && "opacity-50 shadow-md z-50",
+        "group flex items-center gap-3 p-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-800/50 mb-2 transition-all relative z-10 hover:shadow-md",
+        isDragging && "opacity-50 shadow-md z-50 scale-105",
         todo.completed && "opacity-60"
       )}
     >
@@ -90,7 +90,8 @@ export default function Todo() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const { todos, addTodo, moveTodo } = useStore();
+  const { todos } = useUserData();
+  const { addTodo, moveTodo } = useStore();
 
   const dayTodos = todos.filter(t => t.date === currentDate);
   
@@ -160,7 +161,7 @@ export default function Todo() {
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">四象限待办</h1>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">待办</h1>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 flex items-center gap-2">
             <CalendarDays className="w-4 h-4" />
             {format(parseISO(currentDate), 'yyyy年M月d日 EEEE', { locale: zhCN })}

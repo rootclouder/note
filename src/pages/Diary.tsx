@@ -85,7 +85,7 @@ export default function Diary() {
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out max-w-4xl mx-auto w-full">
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">图文日记</h1>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">日记</h1>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 flex items-center gap-2">
             <CalendarDays className="w-4 h-4" />
             {format(parseISO(currentDate), 'yyyy年M月d日 EEEE', { locale: zhCN })}
@@ -97,7 +97,7 @@ export default function Diary() {
             type="date" 
             value={currentDate}
             onChange={(e) => setCurrentDate(e.target.value)}
-            className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-300 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
+            className="px-4 py-2 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-300 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
           />
           {existingDiary && (
             <button
@@ -111,7 +111,7 @@ export default function Diary() {
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col bg-white dark:bg-zinc-950 rounded-[2rem] shadow-sm border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+      <div className="flex-1 flex flex-col bg-white/60 dark:bg-zinc-950/60 backdrop-blur-xl rounded-[2rem] shadow-sm border border-zinc-100 dark:border-zinc-800/50 overflow-hidden">
         {/* Toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-6 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
           <div className="flex items-center gap-6">

@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { CalendarDays, LayoutGrid, BookOpen, Sun, Moon } from 'lucide-react';
+import { CalendarDays, LayoutGrid, BookOpen, Sun, Moon, LogOut } from 'lucide-react';
 import Home from './pages/Home';
 import Todo from './pages/Todo';
 import Diary from './pages/Diary';
@@ -15,7 +15,7 @@ function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="relative w-12 h-12 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden group hover:shadow-md transition-shadow"
+      className="relative w-12 h-12 rounded-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm overflow-hidden group hover:shadow-md transition-shadow"
       aria-label="Toggle Theme"
     >
       <motion.div
@@ -39,6 +39,14 @@ function ThemeToggle() {
 
 function Navigation() {
   const location = useLocation();
+  const { currentUser, logout, setHasSeenWelcome } = useStore();
+
+  const handleLogout = () => {
+    logout();
+    setHasSeenWelcome(); // Maybe we should set it to false so they see welcome page again?
+    // Actually, the user can just logout and be redirected to welcome if we set hasSeenWelcome to false.
+  };
+
   const navItems = [
     { path: '/', icon: CalendarDays, label: '日历' },
     { path: '/todo', icon: LayoutGrid, label: '待办' },
@@ -48,8 +56,8 @@ function Navigation() {
   if (location.pathname === '/welcome') return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 sm:top-0 sm:bottom-auto sm:left-auto sm:right-auto sm:w-64 sm:h-screen bg-white/80 dark:bg-black/80 backdrop-blur-md border-t sm:border-t-0 sm:border-r border-zinc-100 dark:border-zinc-900 p-4 z-50 transition-colors duration-500">
-      <div className="flex sm:flex-col justify-around sm:justify-start gap-2 h-full sm:pt-8">
+    <nav className="fixed bottom-0 left-0 right-0 sm:top-0 sm:bottom-auto sm:left-auto sm:right-auto sm:w-64 sm:h-screen bg-white/60 dark:bg-black/60 backdrop-blur-xl border-t sm:border-t-0 sm:border-r border-zinc-200/50 dark:border-zinc-800/50 p-4 z-50 transition-colors duration-500">
+      <div className="flex sm:flex-col justify-around sm:justify-start gap-2 h-full sm:pt-8 relative">
         {navItems.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path;
           return (
@@ -59,8 +67,8 @@ function Navigation() {
               className={cn(
                 "flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-4 py-3 rounded-2xl transition-all duration-300 group",
                 isActive 
-                  ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-md shadow-zinc-900/10 dark:shadow-white/10" 
-                  : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white"
+                  ? "bg-zinc-900/90 dark:bg-white/90 text-white dark:text-black shadow-lg shadow-zinc-900/20 dark:shadow-white/10" 
+                  : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100/80 dark:hover:bg-zinc-900/80 hover:text-zinc-900 dark:hover:text-white"
               )}
             >
               <Icon className={cn(
@@ -72,8 +80,23 @@ function Navigation() {
           );
         })}
 
-        <div className="hidden sm:flex mt-auto pt-8 items-center justify-center">
+        <div className="hidden sm:flex mt-auto pt-8 items-center justify-center flex-col gap-4">
           <ThemeToggle />
+          
+          {currentUser && (
+            <button
+              onClick={() => {
+                logout();
+                setHasSeenWelcome(false);
+                window.location.href = '/welcome';
+              }}
+              className="flex items-center gap-2 px-4 py-2 mt-4 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-xl transition-colors"
+              title="退出登录"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>退出 ({currentUser})</span>
+            </button>
+          )}
         </div>
       </div>
     </nav>
@@ -81,7 +104,7 @@ function Navigation() {
 }
 
 function MainLayout() {
-  const { hasSeenWelcome } = useStore();
+  const { hasSeenWelcome, currentUser, logout, setHasSeenWelcome } = useStore();
   const location = useLocation();
   const isWelcome = location.pathname === '/welcome';
 
@@ -96,9 +119,22 @@ function MainLayout() {
         {/* Subtle background decoration */}
         <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-50/50 dark:from-teal-900/10 to-transparent -z-10 transition-colors duration-700" />
         
-        {/* Mobile Theme Toggle */}
+        {/* Mobile Header Elements */}
         {!isWelcome && (
-          <div className="sm:hidden fixed top-4 right-4 z-50">
+          <div className="sm:hidden fixed top-4 right-4 z-50 flex items-center gap-2">
+            {currentUser && (
+              <button
+                onClick={() => {
+                  logout();
+                  setHasSeenWelcome(false);
+                  window.location.href = '/welcome';
+                }}
+                className="flex items-center justify-center w-12 h-12 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-full shadow-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                title="退出登录"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            )}
             <ThemeToggle />
           </div>
         )}

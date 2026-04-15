@@ -1,15 +1,52 @@
-import { motion } from 'framer-motion';
-import { BookOpen, CalendarDays, LayoutGrid, ArrowRight, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BookOpen, CalendarDays, LayoutGrid, ArrowRight, Sparkles, User, Key, X } from 'lucide-react';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '../utils/cn';
 
 export default function Welcome() {
-  const { setHasSeenWelcome } = useStore();
+  const { setHasSeenWelcome, login, register, logout } = useStore();
   const navigate = useNavigate();
 
-  const handleStart = () => {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleGuestStart = () => {
+    logout(); // Ensure we are in guest mode
     setHasSeenWelcome();
     navigate('/');
+  };
+
+  const handleAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    
+    if (!username.trim() || !password.trim()) {
+      setErrorMsg('用户名和密码不能为空');
+      return;
+    }
+
+    if (isLoginMode) {
+      const success = login(username, password);
+      if (success) {
+        setHasSeenWelcome();
+        navigate('/');
+      } else {
+        setErrorMsg('用户名或密码错误');
+      }
+    } else {
+      const success = register(username, password);
+      if (success) {
+        setHasSeenWelcome();
+        navigate('/');
+      } else {
+        setErrorMsg('该用户名已被注册');
+      }
+    }
   };
 
   const containerVariants = {
@@ -105,20 +142,126 @@ export default function Welcome() {
           ))}
         </motion.div>
 
-        {/* CTA Button */}
-        <motion.button
-          variants={itemVariants}
-          onClick={handleStart}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="group relative flex items-center justify-center gap-3 px-10 py-5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-full font-semibold text-lg overflow-hidden shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 w-full sm:w-auto min-w-[240px]"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <Sparkles className="w-5 h-5 relative z-10 opacity-70 group-hover:text-white transition-colors" />
-          <span className="relative z-10 tracking-wide group-hover:text-white transition-colors">开启专属空间</span>
-          <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 group-hover:text-white transition-all" />
-        </motion.button>
+        {/* CTA Buttons */}
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto px-4">
+          <motion.button
+            onClick={() => setIsAuthModalOpen(true)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="group relative flex items-center justify-center gap-3 px-10 py-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-full font-semibold text-lg overflow-hidden shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 w-full sm:w-auto min-w-[200px]"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <User className="w-5 h-5 relative z-10 opacity-70 group-hover:text-white transition-colors" />
+            <span className="relative z-10 tracking-wide group-hover:text-white transition-colors">登录账号</span>
+          </motion.button>
+          
+          <motion.button
+            onClick={handleGuestStart}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="group flex items-center justify-center gap-3 px-10 py-4 bg-white/60 dark:bg-zinc-800/60 backdrop-blur-md text-zinc-900 dark:text-white rounded-full font-semibold text-lg overflow-hidden border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm hover:shadow-md hover:bg-white/80 dark:hover:bg-zinc-800/80 transition-all w-full sm:w-auto min-w-[200px]"
+          >
+            <Sparkles className="w-5 h-5 text-teal-500" />
+            <span className="tracking-wide">在线体验</span>
+            <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:translate-x-1 transition-all" />
+          </motion.button>
+        </motion.div>
       </motion.div>
+
+      {/* Auth Modal */}
+      <AnimatePresence>
+        {isAuthModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAuthModalOpen(false)}
+              className="absolute inset-0 bg-zinc-900/40 dark:bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border border-white/50 dark:border-zinc-800 p-8 rounded-3xl shadow-2xl overflow-hidden"
+            >
+              <button 
+                onClick={() => setIsAuthModalOpen(false)}
+                className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-400 shadow-lg shadow-teal-500/20 flex items-center justify-center mx-auto mb-4">
+                  <User className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">
+                  {isLoginMode ? '欢迎回来' : '创建新账号'}
+                </h2>
+                <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">
+                  {isLoginMode ? '登录以同步你的云端数据' : '注册专属账号，隔离你的个人数据'}
+                </p>
+              </div>
+
+              <form onSubmit={handleAuthSubmit} className="space-y-4">
+                <div className="space-y-4">
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                    <input
+                      type="text"
+                      placeholder="用户名"
+                      value={username}
+                      onChange={e => setUsername(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-zinc-950/50 border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all text-zinc-900 dark:text-white placeholder:text-zinc-400"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                    <input
+                      type="password"
+                      placeholder="密码"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-zinc-950/50 border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all text-zinc-900 dark:text-white placeholder:text-zinc-400"
+                    />
+                  </div>
+                </div>
+
+                {errorMsg && (
+                  <motion.p 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="text-red-500 text-sm text-center font-medium"
+                  >
+                    {errorMsg}
+                  </motion.p>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-3 mt-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-xl font-medium shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:-translate-y-0.5 transition-all"
+                >
+                  {isLoginMode ? '登录' : '注册'}
+                </button>
+              </form>
+
+              <div className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                {isLoginMode ? '还没有账号？' : '已有账号？'}
+                <button 
+                  onClick={() => {
+                    setIsLoginMode(!isLoginMode);
+                    setErrorMsg('');
+                  }}
+                  className="ml-2 text-teal-600 dark:text-teal-400 font-medium hover:underline underline-offset-4"
+                >
+                  {isLoginMode ? '立即注册' : '直接登录'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

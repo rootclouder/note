@@ -103,6 +103,7 @@ function MainLayout() {
   const { hasSeenWelcome, currentUser, logout, setHasSeenWelcome } = useStore();
   const location = useLocation();
   const isWelcome = location.pathname === '/welcome';
+  const isNotes = location.pathname === '/notes';
 
   return (
     <div className="min-h-screen font-sans text-zinc-900 dark:text-zinc-100 selection:bg-teal-200/50 dark:selection:bg-teal-900/50 transition-colors duration-700 bg-transparent">
@@ -135,7 +136,10 @@ function MainLayout() {
           </div>
         )}
 
-        <div className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-8 md:p-12 relative z-10 flex flex-col">
+        <div className={cn(
+          "flex-1 w-full mx-auto p-4 sm:p-8 md:p-12 relative z-10 flex flex-col",
+          isNotes ? "max-w-7xl" : "max-w-5xl"
+        )}>
           <Routes>
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/" element={hasSeenWelcome ? <Home /> : <Navigate to="/welcome" replace />} />

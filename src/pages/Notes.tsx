@@ -618,7 +618,7 @@ export default function Notes() {
             <button
               type="button"
               onClick={() => setIsNotebookSheetOpen(true)}
-              className="lg:hidden inline-flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
             >
               <Folder className="w-4 h-4" />
               <span>笔记本</span>
@@ -691,69 +691,7 @@ export default function Notes() {
       </header>
 
       <div className="flex-1 min-h-0 bg-white/60 dark:bg-zinc-950/50 backdrop-blur-2xl rounded-[2.5rem] border border-white/40 dark:border-zinc-800/50 shadow-sm overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_320px_1fr] h-full min-h-0">
-          <aside className="hidden lg:flex flex-col min-h-0 border-r border-white/40 dark:border-zinc-800/60">
-            <div className="p-4 border-b border-white/40 dark:border-zinc-800/60 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                <BookOpen className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                <span>笔记本</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => openCreateNotebook(null)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden xl:inline">新建</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openCreateNotebook(selectedNotebookId)}
-                  className="hidden xl:flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  <span>子级</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-1">
-              {tree.length ? (
-                tree.map((node) => (
-                  <TreeRow key={node.id} node={node} depth={0} />
-                ))
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 py-10 gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white/50 dark:bg-zinc-950/40 backdrop-blur-md border border-white/40 dark:border-zinc-800/50 flex items-center justify-center">
-                    <Folder className="w-6 h-6" />
-                  </div>
-                  <p className="text-sm">还没有笔记本</p>
-                  <button
-                    type="button"
-                    onClick={() => openCreateNotebook(null)}
-                    className="px-4 py-2 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium text-sm shadow-lg shadow-zinc-900/10 dark:shadow-white/10"
-                  >
-                    创建第一个笔记本
-                  </button>
-                </div>
-              )}
-
-              {selectedNotebookId && (
-                <div className="mt-3 pt-3 border-t border-white/30 dark:border-zinc-800/60">
-                  <button
-                    type="button"
-                    onClick={moveSelectedNotebookToRoot}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white/50 dark:bg-zinc-950/30 backdrop-blur-md border border-zinc-200/40 dark:border-zinc-800/50 rounded-xl hover:bg-white/70 dark:hover:bg-zinc-950/50 transition-all"
-                  >
-                    <ArrowRight className="w-4 h-4 rotate-180" />
-                    <span>移动到根目录</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </aside>
-
+        <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] h-full min-h-0">
           <section className={cn("flex flex-col min-h-0 lg:border-r border-white/40 dark:border-zinc-800/60", mobilePane === 'editor' && "hidden lg:flex")}>
             <div className="p-4 border-b border-white/40 dark:border-zinc-800/60 flex items-center justify-between gap-3">
               <div className="min-w-0">
@@ -954,7 +892,7 @@ export default function Notes() {
 
       <AnimatePresence>
         {isNotebookSheetOpen && (
-          <div className="fixed inset-0 z-[105] lg:hidden flex items-end justify-center p-3">
+          <div className="fixed inset-0 z-[105] flex items-end justify-center p-3">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1002,6 +940,19 @@ export default function Notes() {
                   <span>子级</span>
                 </button>
               </div>
+
+              {selectedNotebookId && (
+                <div className="px-4 pb-4">
+                  <button
+                    type="button"
+                    onClick={moveSelectedNotebookToRoot}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white/50 dark:bg-zinc-950/30 backdrop-blur-md border border-zinc-200/40 dark:border-zinc-800/50 rounded-xl hover:bg-white/70 dark:hover:bg-zinc-950/50 transition-all"
+                  >
+                    <ArrowRight className="w-4 h-4 rotate-180" />
+                    <span>移动到根目录</span>
+                  </button>
+                </div>
+              )}
 
               <div className="max-h-[70vh] overflow-y-auto px-4 pb-5 space-y-1">
                 {tree.length ? (

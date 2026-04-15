@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, ChevronDown, ChevronRight, FileText, Folder, Plus, Search, Trash2, Pencil, ArrowRight } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronRight, FileText, Folder, Plus, Search, Trash2, Pencil, ArrowRight, X, Check } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import rehypeSanitize from 'rehype-sanitize';
 import { useStore, useUserData } from '../store';
@@ -89,8 +89,22 @@ export default function Notes() {
 
   const selectedNote = useMemo(() => notes.find(n => n.id === selectedNoteId) || null, [notes, selectedNoteId]);
 
-  const [draftTitle, setDraftTitle] = useState('');
   const [draftContent, setDraftContent] = useState('');
+
+  const [dialog, setDialog] = useState<
+    | null
+    | {
+        mode: 'createNotebook' | 'renameNotebook' | 'createNote' | 'renameNote';
+        title: string;
+        subtitle?: string;
+        value: string;
+        notebookId?: string;
+        parentId?: string | null;
+        noteId?: string;
+      }
+  >(null);
+  const [dialogError, setDialogError] = useState('');
+  const dialogInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!selectedNotebookId) {
@@ -101,22 +115,26 @@ export default function Notes() {
 
   useEffect(() => {
     if (selectedNote) {
-      setDraftTitle(selectedNote.title);
       setDraftContent(selectedNote.content);
       return;
     }
-    setDraftTitle('');
     setDraftContent('');
   }, [selectedNote?.id]);
 
   useEffect(() => {
     if (!selectedNote) return;
     const t = window.setTimeout(() => {
-      if (draftTitle !== selectedNote.title) updateNote(selectedNote.id, { title: draftTitle });
       if (draftContent !== selectedNote.content) updateNote(selectedNote.id, { content: draftContent });
     }, 450);
     return () => window.clearTimeout(t);
-  }, [draftTitle, draftContent, selectedNote?.id]);
+  }, [draftContent, selectedNote?.id]);
+
+  useEffect(() => {
+    if (!dialog) return;
+    setDialogError('');
+    const t = window.setTimeout(() => dialogInputRef.current?.focus(), 50);
+    return () => window.clearTimeout(t);
+  }, [dialog?.mode]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -152,27 +170,94 @@ export default function Notes() {
       .slice(0, 12);
   }, [notes, searchQuery]);
 
-  const createRootNotebook = () => {
-    const name = window.prompt('请输入笔记本名称:');
-    if (!name?.trim()) return;
-    const id = createNotebook({ name: name.trim(), parentId: null });
-    setSelectedNotebookId(id);
-    setExpanded((prev) => new Set(prev).add(id));
+  const openCreateNotebook = (parentId: string | null) => {
+    setDialog({
+      mode: 'createNotebook',
+      title: '新建笔记本',
+      subtitle: parentId ? `父级：${getNotebookPath(parentId)}` : '创建在根目录',
+      value: '',
+      parentId
+    });
   };
 
-  const createChildNotebook = () => {
-    if (!selectedNotebookId) return createRootNotebook();
-    const name = window.prompt('请输入子笔记本名称:');
-    if (!name?.trim()) return;
-    const id = createNotebook({ name: name.trim(), parentId: selectedNotebookId });
-    setSelectedNotebookId(id);
-    setExpanded((prev) => new Set(prev).add(selectedNotebookId).add(id));
+  const openRenameNotebook = (id: string, currentName: string) => {
+    setDialog({
+      mode: 'renameNotebook',
+      title: '重命名笔记本',
+      subtitle: '让结构更清晰一点',
+      value: currentName,
+      notebookId: id
+    });
   };
 
-  const renameNotebook = (id: string, currentName: string) => {
-    const name = window.prompt('重命名笔记本:', currentName);
-    if (!name?.trim() || name.trim() === currentName) return;
-    updateNotebook(id, { name: name.trim() });
+  const openCreateNote = () => {
+    if (!selectedNotebookId) {
+      openCreateNotebook(null);
+      return;
+    }
+    setDialog({
+      mode: 'createNote',
+      title: '新建笔记',
+      subtitle: `笔记本：${getNotebookPath(selectedNotebookId)}`,
+      value: ''
+    });
+  };
+
+  const openRenameNote = (id: string, currentTitle: string) => {
+    setDialog({
+      mode: 'renameNote',
+      title: '编辑标题',
+      subtitle: '让它更容易被搜索到',
+      value: currentTitle,
+      noteId: id
+    });
+  };
+
+  const closeDialog = () => setDialog(null);
+
+  const submitDialog = () => {
+    if (!dialog) return;
+    const v = dialog.value.trim();
+    if (!v) {
+      setDialogError('请输入名称');
+      return;
+    }
+
+    if (dialog.mode === 'createNotebook') {
+      const parentId = dialog.parentId ?? null;
+      const id = createNotebook({ name: v, parentId });
+      setSelectedNotebookId(id);
+      setExpanded((prev) => {
+        const next = new Set(prev);
+        next.add(id);
+        if (parentId) next.add(parentId);
+        return next;
+      });
+      closeDialog();
+      return;
+    }
+
+    if (dialog.mode === 'renameNotebook') {
+      if (!dialog.notebookId) return;
+      updateNotebook(dialog.notebookId, { name: v });
+      closeDialog();
+      return;
+    }
+
+    if (dialog.mode === 'createNote') {
+      if (!selectedNotebookId) return;
+      const id = createNote(selectedNotebookId);
+      updateNote(id, { title: v });
+      setSelectedNoteId(id);
+      closeDialog();
+      return;
+    }
+
+    if (dialog.mode === 'renameNote') {
+      if (!dialog.noteId) return;
+      updateNote(dialog.noteId, { title: v });
+      closeDialog();
+    }
   };
 
   const removeNotebook = (id: string) => {
@@ -183,14 +268,7 @@ export default function Notes() {
     if (selectedNoteId && notes.find(n => n.id === selectedNoteId)?.notebookId === id) setSelectedNoteId(null);
   };
 
-  const createNewNote = () => {
-    if (!selectedNotebookId) {
-      createRootNotebook();
-      return;
-    }
-    const id = createNote(selectedNotebookId);
-    setSelectedNoteId(id);
-  };
+  const createNewNote = () => openCreateNote();
 
   const removeNote = (id: string) => {
     if (!window.confirm('确定删除这条笔记吗？')) return;
@@ -227,7 +305,6 @@ export default function Notes() {
               : "text-zinc-600 dark:text-zinc-300 hover:bg-white/60 dark:hover:bg-zinc-900/60 hover:shadow-sm"
           )}
           style={{ paddingLeft: 12 + depth * 12 }}
-          onClick={() => setSelectedNotebookId(node.id)}
         >
           <button
             type="button"
@@ -240,24 +317,32 @@ export default function Notes() {
               hasChildren ? "opacity-100" : "opacity-0",
               isSelected ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80"
             )}
+            aria-label={isExpanded ? "Collapse notebook" : "Expand notebook"}
           >
             {hasChildren ? (
               isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
             ) : null}
           </button>
 
-          <Folder className={cn("w-4 h-4 shrink-0", isSelected ? "text-white dark:text-zinc-900" : "text-teal-600 dark:text-teal-400")} />
-          <span className="flex-1 text-sm font-medium truncate">{node.name}</span>
+          <button
+            type="button"
+            onClick={() => setSelectedNotebookId(node.id)}
+            className="flex items-center gap-2 flex-1 min-w-0 text-left"
+          >
+            <Folder className={cn("w-4 h-4 shrink-0", isSelected ? "text-white dark:text-zinc-900" : "text-teal-600 dark:text-teal-400")} />
+            <span className="flex-1 text-sm font-medium truncate">{node.name}</span>
+          </button>
 
           <div className={cn("flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity", isSelected && "opacity-100")}>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); renameNotebook(node.id, node.name); }}
+              onClick={(e) => { e.stopPropagation(); openRenameNotebook(node.id, node.name); }}
               className={cn(
                 "p-1.5 rounded-xl transition-colors",
                 isSelected ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80"
               )}
               title="重命名"
+              aria-label="Rename notebook"
             >
               <Pencil className="w-4 h-4" />
             </button>
@@ -269,6 +354,7 @@ export default function Notes() {
                 isSelected ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80"
               )}
               title="删除"
+              aria-label="Delete notebook"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -288,6 +374,95 @@ export default function Notes() {
 
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
+      <AnimatePresence>
+        {dialog && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overscroll-contain">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeDialog}
+              className="absolute inset-0 bg-zinc-900/40 dark:bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 18 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 12 }}
+              className="relative w-full max-w-md bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border border-white/50 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-emerald-500" />
+              <div className="p-6 sm:p-7">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="text-xl font-bold text-zinc-900 dark:text-white truncate">{dialog.title}</h3>
+                    {dialog.subtitle && (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">{dialog.subtitle}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeDialog}
+                    className="p-2 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800/70 transition-colors"
+                    aria-label="Close"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="mt-6">
+                  <label className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                    {dialog.mode === 'createNote' || dialog.mode === 'renameNote' ? '笔记标题' : '笔记本名称'}
+                  </label>
+                  <input
+                    ref={dialogInputRef}
+                    value={dialog.value}
+                    onChange={(e) => setDialog((prev) => prev ? { ...prev, value: e.target.value } : prev)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') closeDialog();
+                      if (e.key === 'Enter') submitDialog();
+                    }}
+                    className="mt-2 w-full px-4 py-3 bg-white/50 dark:bg-zinc-950/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all text-zinc-900 dark:text-white placeholder:text-zinc-400"
+                    placeholder={dialog.mode === 'createNote' || dialog.mode === 'renameNote' ? '例如：产品需求整理' : '例如：学习 / 项目 / 灵感'}
+                  />
+                  <AnimatePresence>
+                    {dialogError && (
+                      <motion.p
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-2 text-sm text-red-500 font-medium"
+                      >
+                        {dialogError}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="mt-6 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={closeDialog}
+                    className="px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white/50 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/60 dark:border-zinc-800/60 hover:bg-white/70 dark:hover:bg-zinc-950/60 transition-all"
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="button"
+                    onClick={submitDialog}
+                    className="group px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-teal-500 to-emerald-500 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/35 hover:-translate-y-0.5 transition-all"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Check className="w-4 h-4" />
+                      确定
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <header className="flex flex-col gap-4 mb-6">
         <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
           <div>
@@ -358,7 +533,7 @@ export default function Notes() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={createRootNotebook}
+                onClick={() => openCreateNotebook(null)}
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
               >
                 <Plus className="w-4 h-4" />
@@ -366,7 +541,7 @@ export default function Notes() {
               </button>
               <button
                 type="button"
-                onClick={createChildNotebook}
+                onClick={() => openCreateNotebook(selectedNotebookId)}
                 className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
               >
                 <ArrowRight className="w-4 h-4" />
@@ -388,7 +563,7 @@ export default function Notes() {
                 <p className="text-sm">还没有笔记本</p>
                 <button
                   type="button"
-                  onClick={createRootNotebook}
+                  onClick={() => openCreateNotebook(null)}
                   className="px-4 py-2 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium text-sm shadow-lg shadow-zinc-900/10 dark:shadow-white/10"
                 >
                   创建第一个笔记本
@@ -449,31 +624,46 @@ export default function Notes() {
                                 ? "bg-zinc-900/90 dark:bg-white/90 border-transparent text-white dark:text-zinc-900 shadow-lg shadow-zinc-900/10 dark:shadow-white/10"
                                 : "bg-white/50 dark:bg-zinc-950/30 border-white/40 dark:border-zinc-800/50 hover:bg-white/70 dark:hover:bg-zinc-950/50 hover:shadow-sm"
                             )}
-                            onClick={() => setSelectedNoteId(n.id)}
                           >
                             <div className={cn("w-10 h-10 rounded-2xl flex items-center justify-center shrink-0", isActive ? "bg-white/10 dark:bg-black/10" : "bg-teal-500/10")}>
                               <FileText className={cn("w-5 h-5", isActive ? "text-white dark:text-zinc-900" : "text-teal-600 dark:text-teal-400")} />
                             </div>
-                            <div className="flex-1 min-w-0">
+                            <button type="button" onClick={() => setSelectedNoteId(n.id)} className="flex-1 min-w-0 text-left">
                               <div className="flex items-center justify-between gap-2">
                                 <div className={cn("text-sm font-semibold truncate", isActive ? "text-white dark:text-zinc-900" : "text-zinc-900 dark:text-zinc-100")}>
                                   {n.title || '未命名笔记'}
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); removeNote(n.id); }}
-                                  className={cn(
-                                    "p-1.5 rounded-xl transition-colors opacity-0 group-hover:opacity-100",
-                                    isActive ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-white/70 dark:hover:bg-zinc-800/70"
-                                  )}
-                                  title="删除"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
                               </div>
                               <div className={cn("text-xs mt-1 line-clamp-2 leading-relaxed", isActive ? "text-white/70 dark:text-zinc-700" : "text-zinc-500 dark:text-zinc-400")}>
                                 {(n.content || '').replace(/[#*`_>]/g, '').trim() || '（无内容）'}
                               </div>
+                            </button>
+
+                            <div className={cn("flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity", isActive && "opacity-100")}>
+                              <button
+                                type="button"
+                                onClick={() => openRenameNote(n.id, n.title || '未命名笔记')}
+                                className={cn(
+                                  "p-1.5 rounded-xl transition-colors",
+                                  isActive ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-white/70 dark:hover:bg-zinc-800/70"
+                                )}
+                                title="编辑标题"
+                                aria-label="Rename note"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeNote(n.id)}
+                                className={cn(
+                                  "p-1.5 rounded-xl transition-colors",
+                                  isActive ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-white/70 dark:hover:bg-zinc-800/70"
+                                )}
+                                title="删除"
+                                aria-label="Delete note"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
                           </div>
                         );
@@ -494,13 +684,31 @@ export default function Notes() {
               <div className="flex-1 min-h-[420px] lg:min-h-0 flex flex-col">
                 {selectedNote ? (
                   <div className="flex-1 flex flex-col min-h-0">
-                    <div className="p-4 sm:p-5 border-b border-white/40 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-950/20 backdrop-blur-md">
-                      <input
-                        value={draftTitle}
-                        onChange={(e) => setDraftTitle(e.target.value)}
-                        className="w-full bg-transparent text-xl font-bold text-zinc-900 dark:text-zinc-100 outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
-                        placeholder="笔记标题…"
-                      />
+                    <div className="p-4 sm:p-5 border-b border-white/40 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-950/20 backdrop-blur-md flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">标题</div>
+                        <div className="text-xl font-bold text-zinc-900 dark:text-zinc-100 truncate mt-1">
+                          {selectedNote.title || '未命名笔记'}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => openRenameNote(selectedNote.id, selectedNote.title || '未命名笔记')}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/60 dark:border-zinc-800/60 hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          <span className="hidden sm:inline">编辑</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeNote(selectedNote.id)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/60 dark:border-zinc-800/60 hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span className="hidden sm:inline">删除</span>
+                        </button>
+                      </div>
                     </div>
                     <div className="flex-1 min-h-0" data-color-mode={useStore((s) => s.theme)}>
                       <MDEditor
@@ -537,4 +745,3 @@ export default function Notes() {
     </div>
   );
 }
-

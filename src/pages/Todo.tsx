@@ -11,10 +11,10 @@ import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const quadrants: { id: Quadrant; title: string; color: string }[] = [
-  { id: 'q1', title: '重要 · 紧急', color: 'bg-orange-50/60 dark:bg-orange-950/40 border-orange-200/50 dark:border-orange-900/50 text-orange-900 dark:text-orange-200 hover:shadow-orange-500/10 dark:hover:shadow-orange-500/5 hover:border-orange-300 dark:hover:border-orange-800/80' },
-  { id: 'q2', title: '重要 · 不紧急', color: 'bg-teal-50/60 dark:bg-teal-950/40 border-teal-200/50 dark:border-teal-900/50 text-teal-900 dark:text-teal-200 hover:shadow-teal-500/10 dark:hover:shadow-teal-500/5 hover:border-teal-300 dark:hover:border-teal-800/80' },
-  { id: 'q3', title: '不重要 · 紧急', color: 'bg-blue-50/60 dark:bg-blue-950/40 border-blue-200/50 dark:border-blue-900/50 text-blue-900 dark:text-blue-200 hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 hover:border-blue-300 dark:hover:border-blue-800/80' },
-  { id: 'q4', title: '不重要 · 不紧急', color: 'bg-zinc-50/60 dark:bg-zinc-900/40 border-zinc-200/50 dark:border-zinc-800/50 text-zinc-900 dark:text-zinc-300 hover:shadow-zinc-500/10 dark:hover:shadow-zinc-500/5 hover:border-zinc-300 dark:hover:border-zinc-700/80' }
+  { id: 'q1', title: '重要 · 紧急', color: 'bg-orange-50/60 dark:bg-orange-950/40 border-orange-200/50 dark:border-orange-900/50 text-orange-900 dark:text-orange-200 hover:shadow-lg hover:shadow-orange-500/10 dark:hover:shadow-orange-500/5 hover:border-orange-300 dark:hover:border-orange-800/80 hover:-translate-y-1' },
+  { id: 'q2', title: '重要 · 不紧急', color: 'bg-teal-50/60 dark:bg-teal-950/40 border-teal-200/50 dark:border-teal-900/50 text-teal-900 dark:text-teal-200 hover:shadow-lg hover:shadow-teal-500/10 dark:hover:shadow-teal-500/5 hover:border-teal-300 dark:hover:border-teal-800/80 hover:-translate-y-1' },
+  { id: 'q3', title: '不重要 · 紧急', color: 'bg-blue-50/60 dark:bg-blue-950/40 border-blue-200/50 dark:border-blue-900/50 text-blue-900 dark:text-blue-200 hover:shadow-lg hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 hover:border-blue-300 dark:hover:border-blue-800/80 hover:-translate-y-1' },
+  { id: 'q4', title: '不重要 · 不紧急', color: 'bg-zinc-50/60 dark:bg-zinc-900/40 border-zinc-200/50 dark:border-zinc-800/50 text-zinc-900 dark:text-zinc-300 hover:shadow-lg hover:shadow-zinc-500/10 dark:hover:shadow-zinc-500/5 hover:border-zinc-300 dark:hover:border-zinc-700/80 hover:-translate-y-1' }
 ];
 
 function SortableTodoItem({ todo }: { todo: TodoType }) {
@@ -264,7 +264,7 @@ export default function Todo() {
                 id={quadrant.id}
                 onClick={(e) => handleQuadrantClick(quadrant.id, e)}
                 className={cn(
-                  "flex flex-col rounded-[2rem] p-6 border transition-all duration-300 cursor-text",
+                  "flex flex-col rounded-[2rem] p-6 border transition-all duration-300 cursor-text backdrop-blur-md",
                   quadrant.color,
                   activeId && !quadrantTodos.find(t => t.id === activeId) && "opacity-70 scale-[0.98]"
                 )}

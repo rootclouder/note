@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { useStore, Diary as DiaryType } from '../store';
+import { useStore, useUserData, Diary as DiaryType } from '../store';
 import { Save, CalendarDays, Trash2, Edit3, Eye, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MDEditor from '@uiw/react-md-editor';
@@ -26,13 +26,51 @@ export default function Diary() {
   const [currentDate, setCurrentDate] = useState(initialDateStr);
   const [isEditing, setIsEditing] = useState(true);
   
-  const { diaries, saveDiary, deleteDiary } = useStore();
+  const { diaries } = useUserData();
+  const { saveDiary, deleteDiary } = useStore();
   const existingDiary = diaries.find(d => d.date === currentDate);
 
   const [content, setContent] = useState('');
   const [mood, setMood] = useState('neutral');
   const [weather, setWeather] = useState('sunny');
   const [images, setImages] = useState<string[]>([]);
+
+  // Refs to hold latest values for auto-save
+  const contentRef = useRef(content);
+  const moodRef = useRef(mood);
+  const weatherRef = useRef(weather);
+  const imagesRef = useRef(images);
+  const dateRef = useRef(currentDate);
+  const existingDiaryIdRef = useRef(existingDiary?.id);
+
+  useEffect(() => {
+    contentRef.current = content;
+    moodRef.current = mood;
+    weatherRef.current = weather;
+    imagesRef.current = images;
+    dateRef.current = currentDate;
+    existingDiaryIdRef.current = existingDiary?.id;
+  }, [content, mood, weather, images, currentDate, existingDiary]);
+
+  // Auto-save when unmounting (leaving page)
+  useEffect(() => {
+    return () => {
+      const currentContent = contentRef.current;
+      const currentImages = imagesRef.current;
+      
+      // Only auto-save if there's actual content or images to save
+      if (currentContent.trim() || currentImages.length > 0) {
+        saveDiary({
+          id: existingDiaryIdRef.current || crypto.randomUUID(),
+          date: dateRef.current,
+          content: currentContent,
+          mood: moodRef.current,
+          weather: weatherRef.current,
+          images: currentImages
+        });
+      }
+    };
+  }, [saveDiary]);
 
   // Add a new image via URL (simulate upload)
   const handleAddImage = () => {
@@ -62,7 +100,7 @@ export default function Diary() {
     if (!content.trim() && images.length === 0) return;
     
     saveDiary({
-      id: existingDiary?.id || crypto.randomUUID(),
+      id: existingDiary?.id || existingDiaryIdRef.current || crypto.randomUUID(),
       date: currentDate,
       content,
       mood,

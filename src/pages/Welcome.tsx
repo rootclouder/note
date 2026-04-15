@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, CalendarDays, LayoutGrid, ArrowRight, Sparkles, User, Key, X } from 'lucide-react';
+import { BookOpen, CalendarDays, LayoutGrid, ArrowRight, Sparkles, User, Key, X, FileText } from 'lucide-react';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
-import { cn } from '../utils/cn';
 
 export default function Welcome() {
   const { setHasSeenWelcome, login, register, logout } = useStore();
@@ -82,6 +81,11 @@ export default function Welcome() {
       icon: BookOpen,
       title: "沉浸式日记",
       desc: "支持 Markdown 富文本。所见即所得的输入体验，给情绪一个安静的容器。"
+    },
+    {
+      icon: FileText,
+      title: "笔记本体系",
+      desc: "支持多层级笔记本与全文搜索。把知识、灵感与项目拆解成可复用的结构。"
     }
   ];
 
@@ -126,7 +130,7 @@ export default function Welcome() {
         </motion.div>
 
         {/* Feature Cards */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-16 px-4">
+        <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full mb-16 px-4">
           {features.map((feature, idx) => (
             <div 
               key={idx} 
@@ -200,7 +204,7 @@ export default function Welcome() {
                   {isLoginMode ? '欢迎回来' : '创建新账号'}
                 </h2>
                 <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">
-                  {isLoginMode ? '登录以同步你的云端数据' : '注册专属账号，隔离你的个人数据'}
+                  {isLoginMode ? '登录以载入你的账号数据' : '注册专属账号，隔离你的个人数据'}
                 </p>
               </div>
 

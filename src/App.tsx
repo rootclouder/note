@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { CalendarDays, LayoutGrid, BookOpen, Sun, Moon, LogOut } from 'lucide-react';
+import { CalendarDays, LayoutGrid, BookOpen, Sun, Moon, LogOut, FileText } from 'lucide-react';
 import Home from './pages/Home';
 import Todo from './pages/Todo';
 import Diary from './pages/Diary';
+import Notes from './pages/Notes';
 import Welcome from './pages/Welcome';
 import { cn } from './utils/cn';
 import { useStore } from './store';
@@ -41,16 +42,11 @@ function Navigation() {
   const location = useLocation();
   const { currentUser, logout, setHasSeenWelcome } = useStore();
 
-  const handleLogout = () => {
-    logout();
-    setHasSeenWelcome(); // Maybe we should set it to false so they see welcome page again?
-    // Actually, the user can just logout and be redirected to welcome if we set hasSeenWelcome to false.
-  };
-
   const navItems = [
     { path: '/', icon: CalendarDays, label: '日历' },
     { path: '/todo', icon: LayoutGrid, label: '待办' },
     { path: '/diary', icon: BookOpen, label: '日记' },
+    { path: '/notes', icon: FileText, label: '笔记' },
   ];
 
   if (location.pathname === '/welcome') return null;
@@ -145,6 +141,7 @@ function MainLayout() {
             <Route path="/" element={hasSeenWelcome ? <Home /> : <Navigate to="/welcome" replace />} />
             <Route path="/todo" element={hasSeenWelcome ? <Todo /> : <Navigate to="/welcome" replace />} />
             <Route path="/diary" element={hasSeenWelcome ? <Diary /> : <Navigate to="/welcome" replace />} />
+            <Route path="/notes" element={hasSeenWelcome ? <Notes /> : <Navigate to="/welcome" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

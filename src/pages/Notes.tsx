@@ -30,13 +30,12 @@ export default function Notes() {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(initialNoteId);
   const [selectedShelfId, setSelectedShelfId] = useState<string | null>(null);
   const [expandedShelves, setExpandedShelves] = useState<Set<string>>(() => new Set());
+  const [expandedNotebooks, setExpandedNotebooks] = useState<Set<string>>(() => new Set());
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const [noteQuery, setNoteQuery] = useState('');
-  const [mobilePane, setMobilePane] = useState<'list' | 'editor'>(() => (initialNoteId ? 'editor' : 'list'));
   const [isNotebookSheetOpen, setIsNotebookSheetOpen] = useState(false);
 
   const notebookById = useMemo(() => {
@@ -98,12 +97,6 @@ export default function Notes() {
       .filter(n => n.notebookId === selectedNotebookId)
       .sort((a, b) => b.updatedAt - a.updatedAt);
   }, [notes, selectedNotebookId]);
-
-  const filteredNotebookNotes = useMemo(() => {
-    const q = noteQuery.trim().toLowerCase();
-    if (!q) return currentNotebookNotes;
-    return currentNotebookNotes.filter((n) => ((n.title || '').toLowerCase().includes(q) || (n.content || '').toLowerCase().includes(q)));
-  }, [currentNotebookNotes, noteQuery]);
 
   const selectedNote = useMemo(() => notes.find(n => n.id === selectedNoteId) || null, [notes, selectedNoteId]);
 
@@ -290,7 +283,6 @@ export default function Notes() {
       const id = createNote(selectedNotebookId);
       updateNote(id, { title: v });
       setSelectedNoteId(id);
-      setMobilePane('editor');
       closeDialog();
       return;
     }
@@ -322,7 +314,6 @@ export default function Notes() {
     deleteNote(id);
     if (selectedNoteId === id) {
       setSelectedNoteId(next);
-      setMobilePane(next ? 'editor' : 'list');
     }
   };
 
@@ -335,12 +326,20 @@ export default function Notes() {
     });
   };
 
+  const toggleNotebookExpanded = (notebookId: string) => {
+    setExpandedNotebooks((prev) => {
+      const next = new Set(prev);
+      if (next.has(notebookId)) next.delete(notebookId);
+      else next.add(notebookId);
+      return next;
+    });
+  };
+
   const selectNotebook = (notebookId: string, shelfId: string) => {
     setSelectedShelfId(shelfId);
     setExpandedShelves((prev) => new Set(prev).add(shelfId));
     setSelectedNotebookId(notebookId);
     setIsNotebookSheetOpen(false);
-    setMobilePane('list');
   };
 
   const moveSelectedNotebookToRoot = () => {
@@ -584,7 +583,6 @@ export default function Notes() {
                           onClick={() => {
                             setSelectedNotebookId(r.notebookId);
                             setSelectedNoteId(r.id);
-                            setMobilePane('editor');
                             setSearchQuery('');
                             setIsSearchOpen(false);
                           }}
@@ -611,129 +609,12 @@ export default function Notes() {
       </header>
 
       <div className="flex-1 min-h-0 bg-white/60 dark:bg-zinc-950/50 backdrop-blur-2xl rounded-[2.5rem] border border-white/40 dark:border-zinc-800/50 shadow-sm overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] h-full min-h-0">
-          <section className={cn("flex flex-col min-h-0 lg:border-r border-white/40 dark:border-zinc-800/60", mobilePane === 'editor' && "hidden lg:flex")}>
-            <div className="p-4 border-b border-white/40 dark:border-zinc-800/60 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                  {selectedNotebookId ? getNotebookPath(selectedNotebookId) : '笔记列表'}
-                </div>
-                <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-                  {selectedNotebookId ? `${currentNotebookNotes.length} 条` : '先选择一个笔记本'}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={createNewNote}
-                className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg shadow-zinc-900/10 dark:shadow-white/10"
-                aria-label="新建笔记"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-3 border-b border-white/30 dark:border-zinc-800/50">
-              <input
-                value={noteQuery}
-                onChange={(e) => setNoteQuery(e.target.value)}
-                aria-label="筛选当前笔记本"
-                name="noteFilter"
-                autoComplete="off"
-                placeholder="筛选当前笔记本…"
-                className="w-full px-4 py-2.5 bg-white/60 dark:bg-zinc-900/50 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100"
-              />
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
-              {selectedNotebookId ? (
-                filteredNotebookNotes.length ? (
-                  filteredNotebookNotes.map((n) => {
-                    const isActive = n.id === selectedNoteId;
-                    return (
-                      <div
-                        key={n.id}
-                        className={cn(
-                          "group flex items-start gap-3 px-3 py-3 rounded-2xl border transition-all cursor-pointer",
-                          isActive
-                            ? "bg-zinc-900/90 dark:bg-white/90 border-transparent text-white dark:text-zinc-900 shadow-lg shadow-zinc-900/10 dark:shadow-white/10"
-                            : "bg-white/50 dark:bg-zinc-950/30 border-white/40 dark:border-zinc-800/50 hover:bg-white/70 dark:hover:bg-zinc-950/50 hover:shadow-sm"
-                        )}
-                      >
-                        <div className={cn("w-10 h-10 rounded-2xl flex items-center justify-center shrink-0", isActive ? "bg-white/10 dark:bg-black/10" : "bg-teal-500/10")}>
-                          <FileText className={cn("w-5 h-5", isActive ? "text-white dark:text-zinc-900" : "text-teal-600 dark:text-teal-400")} />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedNoteId(n.id);
-                            setMobilePane('editor');
-                          }}
-                          className="flex-1 min-w-0 text-left"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className={cn("text-sm font-semibold truncate", isActive ? "text-white dark:text-zinc-900" : "text-zinc-900 dark:text-zinc-100")}>
-                              {n.title || '未命名笔记'}
-                            </div>
-                            <div className={cn("text-[11px] font-medium shrink-0", isActive ? "text-white/70 dark:text-zinc-700" : "text-zinc-400 dark:text-zinc-500")}>
-                              {new Date(n.updatedAt).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
-                            </div>
-                          </div>
-                          <div className={cn("text-xs mt-1 line-clamp-2 leading-relaxed", isActive ? "text-white/70 dark:text-zinc-700" : "text-zinc-500 dark:text-zinc-400")}>
-                            {(n.content || '').replace(/[#*`_>]/g, '').trim() || '（无内容）'}
-                          </div>
-                        </button>
-
-                        <div className={cn("flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity", isActive && "opacity-100")}>
-                          <button
-                            type="button"
-                            onClick={() => openRenameNote(n.id, n.title || '未命名笔记')}
-                            className={cn(
-                              "p-1.5 rounded-xl transition-colors",
-                              isActive ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-white/70 dark:hover:bg-zinc-800/70"
-                            )}
-                            title="编辑标题"
-                            aria-label="编辑标题"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeNote(n.id)}
-                            className={cn(
-                              "p-1.5 rounded-xl transition-colors",
-                              isActive ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-white/70 dark:hover:bg-zinc-800/70"
-                            )}
-                            title="删除"
-                            aria-label="删除笔记"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">没有匹配的笔记</div>
-                )
-              ) : (
-                <div className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">先创建一个笔记本再开始</div>
-              )}
-            </div>
-          </section>
-
-          <section className={cn("flex flex-col min-h-0", mobilePane === 'list' && "hidden lg:flex")}>
+        <div className="grid grid-cols-1 h-full min-h-0">
+          <section className="flex flex-col min-h-0">
             {selectedNote ? (
               <div className="flex-1 flex flex-col min-h-0">
                 <div className="p-4 border-b border-white/40 dark:border-zinc-800/60 bg-white/40 dark:bg-zinc-950/20 backdrop-blur-md flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <button
-                      type="button"
-                      onClick={() => setMobilePane('list')}
-                      className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/60 dark:bg-zinc-950/40 border border-zinc-200/60 dark:border-zinc-800/60 text-zinc-600 dark:text-zinc-300 hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
-                      aria-label="返回列表"
-                    >
-                      <ArrowRight className="w-4 h-4 rotate-180" />
-                    </button>
                     <input
                       value={draftTitle}
                       onChange={(e) => setDraftTitle(e.target.value)}
@@ -792,7 +673,7 @@ export default function Notes() {
                   <button
                     type="button"
                     onClick={() => setIsNotebookSheetOpen(true)}
-                    className="lg:hidden px-5 py-2.5 rounded-full bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-200 font-medium text-sm shadow-sm"
+                    className="px-5 py-2.5 rounded-full bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-200 font-medium text-sm shadow-sm"
                   >
                     选择书架
                   </button>

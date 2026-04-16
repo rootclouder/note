@@ -21,18 +21,11 @@ export interface Diary {
   images: string[];
 }
 
-export interface Notebook {
-  id: string;
-  name: string;
-  parentId: string | null;
-  createdAt: number;
-}
-
 export interface Note {
   id: string;
-  notebookId: string;
   title: string;
   content: string;
+  tags: string[];
   updatedAt: number;
 }
 
@@ -40,14 +33,12 @@ export interface UserData {
   password?: string;
   todos: Todo[];
   diaries: Diary[];
-  notebooks: Notebook[];
   notes: Note[];
 }
 
 interface AppState {
   todos: Todo[]; // Guest data
   diaries: Diary[]; // Guest data
-  notebooks: Notebook[]; // Guest data
   notes: Note[]; // Guest data
   users: Record<string, UserData>; // Registered users data
   currentUser: string | null; // null means Guest
@@ -75,15 +66,9 @@ interface AppState {
   saveDiary: (diary: Diary) => void;
   deleteDiary: (date: string) => void;
 
-  // Notebook actions
-  createNotebook: (payload: { name: string; parentId?: string | null }) => string;
-  updateNotebook: (id: string, updates: Partial<Omit<Notebook, 'id'>>) => void;
-  deleteNotebook: (id: string) => void;
-  moveNotebook: (id: string, parentId: string | null) => void;
-
   // Note actions
-  createNote: (notebookId: string) => string;
-  updateNote: (id: string, updates: Partial<Omit<Note, 'id' | 'notebookId'>>) => void;
+  createNote: () => string;
+  updateNote: (id: string, updates: Partial<Omit<Note, 'id'>>) => void;
   deleteNote: (id: string) => void;
 }
 
@@ -92,7 +77,6 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       todos: [],
       diaries: [],
-      notebooks: [],
       notes: [],
       users: {},
       currentUser: null,
@@ -121,7 +105,7 @@ export const useStore = create<AppState>()(
           currentUser: username,
           users: {
             ...state.users,
-            [username]: { password, todos: [], diaries: [], notebooks: [], notes: [] }
+            [username]: { password, todos: [], diaries: [], notes: [] }
           }
         });
         return true;
@@ -132,7 +116,7 @@ export const useStore = create<AppState>()(
       addTodo: (todo) => set((state) => {
         const newTodo = { ...todo, id: crypto.randomUUID() };
         if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
           return {
             users: {
               ...state.users,
@@ -148,7 +132,7 @@ export const useStore = create<AppState>()(
 
       updateTodo: (id, updates) => set((state) => {
         if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
           return {
             users: {
               ...state.users,
@@ -164,7 +148,7 @@ export const useStore = create<AppState>()(
 
       deleteTodo: (id) => set((state) => {
         if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
           return {
             users: {
               ...state.users,
@@ -180,7 +164,7 @@ export const useStore = create<AppState>()(
 
       moveTodo: (id, newQuadrant) => set((state) => {
         if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
           return {
             users: {
               ...state.users,
@@ -203,7 +187,7 @@ export const useStore = create<AppState>()(
         };
 
         if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
           return {
             users: {
               ...state.users,
@@ -229,7 +213,7 @@ export const useStore = create<AppState>()(
         };
 
         if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
           return {
             users: {
               ...state.users,
@@ -245,7 +229,7 @@ export const useStore = create<AppState>()(
 
       deleteDiary: (date) => set((state) => {
         if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
           return {
             users: {
               ...state.users,
@@ -259,97 +243,12 @@ export const useStore = create<AppState>()(
         return { diaries: state.diaries.filter(d => d.date !== date) };
       }),
 
-      createNotebook: ({ name, parentId = null }) => {
+      createNote: () => {
         const id = crypto.randomUUID();
-        const notebook: Notebook = { id, name, parentId, createdAt: Date.now() };
+        const note: Note = { id, title: '未命名笔记', content: '', tags: [], updatedAt: Date.now() };
         set((state) => {
           if (state.currentUser) {
-            const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
-            return {
-              users: {
-                ...state.users,
-                [state.currentUser]: {
-                  ...userData,
-                  notebooks: [...userData.notebooks, notebook]
-                }
-              }
-            };
-          }
-          return { notebooks: [...state.notebooks, notebook] };
-        });
-        return id;
-      },
-
-      updateNotebook: (id, updates) => set((state) => {
-        const apply = (notebooks: Notebook[]) => notebooks.map(n => n.id === id ? { ...n, ...updates } : n);
-        if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
-          return {
-            users: {
-              ...state.users,
-              [state.currentUser]: { ...userData, notebooks: apply(userData.notebooks) }
-            }
-          };
-        }
-        return { notebooks: apply(state.notebooks) };
-      }),
-
-      moveNotebook: (id, parentId) => set((state) => {
-        const apply = (notebooks: Notebook[]) => notebooks.map(n => n.id === id ? { ...n, parentId } : n);
-        if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
-          return {
-            users: {
-              ...state.users,
-              [state.currentUser]: { ...userData, notebooks: apply(userData.notebooks) }
-            }
-          };
-        }
-        return { notebooks: apply(state.notebooks) };
-      }),
-
-      deleteNotebook: (id) => set((state) => {
-        const collect = (notebooks: Notebook[], targetId: string) => {
-          const ids = new Set<string>();
-          const stack = [targetId];
-          while (stack.length) {
-            const current = stack.pop()!;
-            if (ids.has(current)) continue;
-            ids.add(current);
-            for (const n of notebooks) {
-              if (n.parentId === current) stack.push(n.id);
-            }
-          }
-          return ids;
-        };
-
-        const apply = (notebooks: Notebook[], notes: Note[]) => {
-          const ids = collect(notebooks, id);
-          return {
-            notebooks: notebooks.filter(n => !ids.has(n.id)),
-            notes: notes.filter(note => !ids.has(note.notebookId))
-          };
-        };
-
-        if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
-          const next = apply(userData.notebooks, userData.notes);
-          return {
-            users: {
-              ...state.users,
-              [state.currentUser]: { ...userData, ...next }
-            }
-          };
-        }
-        return apply(state.notebooks, state.notes);
-      }),
-
-      createNote: (notebookId) => {
-        const id = crypto.randomUUID();
-        const note: Note = { id, notebookId, title: '未命名笔记', content: '', updatedAt: Date.now() };
-        set((state) => {
-          if (state.currentUser) {
-            const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+            const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
             return {
               users: {
                 ...state.users,
@@ -365,7 +264,7 @@ export const useStore = create<AppState>()(
       updateNote: (id, updates) => set((state) => {
         const apply = (notes: Note[]) => notes.map(n => n.id === id ? { ...n, ...updates, updatedAt: Date.now() } : n);
         if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
           return {
             users: { ...state.users, [state.currentUser]: { ...userData, notes: apply(userData.notes) } }
           };
@@ -376,7 +275,7 @@ export const useStore = create<AppState>()(
       deleteNote: (id) => set((state) => {
         const apply = (notes: Note[]) => notes.filter(n => n.id !== id);
         if (state.currentUser) {
-          const userData = { todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser] };
+          const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };
           return {
             users: { ...state.users, [state.currentUser]: { ...userData, notes: apply(userData.notes) } }
           };
@@ -393,12 +292,11 @@ export const useStore = create<AppState>()(
 export const useUserData = () => {
   const state = useStore();
   const isGuest = state.currentUser === null;
-  const userData = isGuest ? null : ({ todos: [], diaries: [], notebooks: [], notes: [], ...state.users[state.currentUser!] });
+  const userData = isGuest ? null : ({ todos: [], diaries: [], notes: [], ...state.users[state.currentUser!] });
 
   return {
     todos: isGuest ? state.todos : userData!.todos,
     diaries: isGuest ? state.diaries : userData!.diaries,
-    notebooks: isGuest ? state.notebooks : userData!.notebooks,
     notes: isGuest ? state.notes : userData!.notes,
   };
 };

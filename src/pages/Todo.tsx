@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { format, parseISO, subDays, addDays, isToday } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { GripVertical, Trash2, CalendarDays, CheckCircle2, Circle, ArrowRight, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { GripVertical, Trash2, CalendarDays, CheckCircle2, Circle, ArrowRight, ChevronLeft, ChevronRight, Search, Maximize2, Minimize2, Plus } from 'lucide-react';
 import { useStore, useUserData, Quadrant, Todo as TodoType } from '../store';
 import { cn } from '../utils/cn';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
@@ -90,6 +90,8 @@ export default function Todo() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
+  const [expandedQuadrant, setExpandedQuadrant] = useState<string | null>(null);
+
   const { todos } = useUserData();
   const { addTodo, moveTodo } = useStore();
 
@@ -141,16 +143,13 @@ export default function Todo() {
     }
   };
 
-  const handleQuadrantClick = (quadrantId: Quadrant, e: React.MouseEvent) => {
-    // Only add if clicking the quadrant container itself, not the items
-    if (e.target === e.currentTarget) {
-      addTodo({
-        title: '',
-        quadrant: quadrantId,
-        date: currentDate,
-        completed: false
-      });
-    }
+  const handleAddTodo = (quadrantId: Quadrant) => {
+    addTodo({
+      title: '',
+      quadrant: quadrantId,
+      date: currentDate,
+      completed: false
+    });
   };
 
   const prevDay = () => setCurrentDate(format(subDays(parseISO(currentDate), 1), 'yyyy-MM-dd'));
@@ -255,26 +254,46 @@ export default function Todo() {
       </header>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+        <div className={cn(
+          "gap-4 flex-1 min-h-0",
+          expandedQuadrant ? "flex" : "grid grid-cols-1 md:grid-cols-2 md:grid-rows-2"
+        )}>
           {quadrants.map((quadrant) => {
+            if (expandedQuadrant && expandedQuadrant !== quadrant.id) return null;
             const quadrantTodos = dayTodos.filter(t => t.quadrant === quadrant.id);
             return (
               <div 
                 key={quadrant.id} 
                 id={quadrant.id}
-                onClick={(e) => handleQuadrantClick(quadrant.id, e)}
                 className={cn(
-                  "flex flex-col rounded-[2rem] p-6 border transition-all duration-300 cursor-text backdrop-blur-md",
+                  "flex flex-col rounded-[2rem] p-6 border transition-all duration-300 backdrop-blur-md",
+                  expandedQuadrant ? "flex-1" : "min-h-0 h-full",
                   quadrant.color,
                   activeId && !quadrantTodos.find(t => t.id === activeId) && "opacity-70 scale-[0.98]"
                 )}
               >
-                <div className="flex items-center justify-between mb-4 pointer-events-none">
-                  <h2 className="font-bold tracking-wide">{quadrant.title}</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-bold tracking-wide pointer-events-none">{quadrant.title}</h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleAddTodo(quadrant.id)}
+                      className="p-2 rounded-xl bg-white/50 dark:bg-black/20 hover:bg-white/80 dark:hover:bg-black/40 transition-colors"
+                      title="新增待办"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setExpandedQuadrant(expandedQuadrant === quadrant.id ? null : quadrant.id)}
+                      className="p-2 rounded-xl bg-white/50 dark:bg-black/20 hover:bg-white/80 dark:hover:bg-black/40 transition-colors"
+                      title={expandedQuadrant === quadrant.id ? "还原" : "全屏显示"}
+                    >
+                      {expandedQuadrant === quadrant.id ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 
                 <SortableContext items={quadrantTodos.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                  <div className="flex-1 min-h-[150px] pointer-events-none">
+                  <div className="flex-1 overflow-y-auto pr-2 -mr-2">
                     <AnimatePresence>
                       {quadrantTodos.length === 0 && (
                         <motion.div 
@@ -284,7 +303,7 @@ export default function Todo() {
                           exit={{ opacity: 0 }}
                           className="h-full flex items-center justify-center text-sm opacity-50 italic pointer-events-none"
                         >
-                          点击空白处新增待办
+                          点击加号新增待办
                         </motion.div>
                       )}
                       <div className="pointer-events-auto">

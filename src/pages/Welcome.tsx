@@ -84,8 +84,8 @@ export default function Welcome() {
     },
     {
       icon: FileText,
-      title: "笔记本体系",
-      desc: "支持多层级笔记本与全文搜索。把知识、灵感与项目拆解成可复用的结构。"
+      title: "笔记体系",
+      desc: "支持标签管理与全文搜索。随时记录灵感与知识，搭建你的专属知识库。"
     }
   ];
 

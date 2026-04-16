@@ -67,7 +67,7 @@ interface AppState {
   deleteDiary: (date: string) => void;
 
   // Note actions
-  createNote: () => string;
+  createNote: (payload: { title: string; tags: string[] }) => string;
   updateNote: (id: string, updates: Partial<Omit<Note, 'id'>>) => void;
   deleteNote: (id: string) => void;
 }
@@ -243,9 +243,9 @@ export const useStore = create<AppState>()(
         return { diaries: state.diaries.filter(d => d.date !== date) };
       }),
 
-      createNote: () => {
+      createNote: ({ title, tags }) => {
         const id = crypto.randomUUID();
-        const note: Note = { id, title: '未命名笔记', content: '', tags: [], updatedAt: Date.now() };
+        const note: Note = { id, title: title || '未命名笔记', content: '', tags, updatedAt: Date.now() };
         set((state) => {
           if (state.currentUser) {
             const userData = { todos: [], diaries: [], notes: [], ...state.users[state.currentUser] };

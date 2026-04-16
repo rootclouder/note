@@ -12,3 +12,29 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+.wmde-markdown {
+  background-color: transparent !important;
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+}
+
+[data-color-mode*='dark'] .wmde-markdown {
+  background-color: transparent !important;
+}
+
+.w-md-editor-text-pre > code,
+.w-md-editor-text-input {
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+}

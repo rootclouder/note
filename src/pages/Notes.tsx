@@ -7,34 +7,6 @@ import rehypeSanitize from 'rehype-sanitize';
 import { useStore, useUserData } from '../store';
 import { cn } from '../utils/cn';
 
-type TreeNode = {
-  id: string;
-  name: string;
-  parentId: string | null;
-  children: TreeNode[];
-};
-
-function buildTree(items: { id: string; name: string; parentId: string | null }[]) {
-  const map = new Map<string, TreeNode>();
-  for (const item of items) {
-    map.set(item.id, { ...item, children: [] });
-  }
-  const roots: TreeNode[] = [];
-  for (const node of map.values()) {
-    if (node.parentId && map.has(node.parentId)) {
-      map.get(node.parentId)!.children.push(node);
-    } else {
-      roots.push(node);
-    }
-  }
-  const sort = (nodes: TreeNode[]) => {
-    nodes.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
-    for (const n of nodes) sort(n.children);
-  };
-  sort(roots);
-  return roots;
-}
-
 export default function Notes() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -56,7 +28,8 @@ export default function Notes() {
 
   const [selectedNotebookId, setSelectedNotebookId] = useState<string | null>(initialNotebookId);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(initialNoteId);
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const [selectedShelfId, setSelectedShelfId] = useState<string | null>(null);
+  const [expandedShelves, setExpandedShelves] = useState<Set<string>>(() => new Set());
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -65,8 +38,6 @@ export default function Notes() {
   const [noteQuery, setNoteQuery] = useState('');
   const [mobilePane, setMobilePane] = useState<'list' | 'editor'>(() => (initialNoteId ? 'editor' : 'list'));
   const [isNotebookSheetOpen, setIsNotebookSheetOpen] = useState(false);
-
-  const tree = useMemo(() => buildTree(notebooks), [notebooks]);
 
   const notebookById = useMemo(() => {
     const map = new Map<string, { id: string; name: string; parentId: string | null }>();
@@ -87,6 +58,39 @@ export default function Notes() {
       return names.join(' / ');
     };
   }, [notebookById]);
+
+  const getRootShelfId = useMemo(() => {
+    return (notebookId: string) => {
+      let cur = notebookById.get(notebookId);
+      const guard = new Set<string>();
+      while (cur?.parentId && !guard.has(cur.id)) {
+        guard.add(cur.id);
+        cur = notebookById.get(cur.parentId);
+      }
+      return cur?.id ?? notebookId;
+    };
+  }, [notebookById]);
+
+  const shelves = useMemo(() => {
+    return notebooks
+      .filter((nb) => nb.parentId === null)
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+  }, [notebooks]);
+
+  const notebooksByShelf = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; parentId: string | null }[]>();
+    for (const nb of notebooks) {
+      if (!nb.parentId) continue;
+      const list = map.get(nb.parentId) ?? [];
+      list.push(nb);
+      map.set(nb.parentId, list);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+    }
+    return map;
+  }, [notebooks]);
 
   const currentNotebookNotes = useMemo(() => {
     if (!selectedNotebookId) return [];
@@ -132,11 +136,14 @@ export default function Notes() {
   }, [notebooks, getNotebookPath]);
 
   useEffect(() => {
-    if (!selectedNotebookId) {
-      const first = tree[0]?.id ?? null;
-      if (first) setSelectedNotebookId(first);
-    }
-  }, [selectedNotebookId, tree]);
+    if (selectedNotebookId) return;
+    const firstShelf = shelves[0]?.id ?? null;
+    if (!firstShelf) return;
+    const firstChild = notebooksByShelf.get(firstShelf)?.[0]?.id ?? null;
+    setSelectedShelfId(firstShelf);
+    setExpandedShelves((prev) => new Set(prev).add(firstShelf));
+    setSelectedNotebookId(firstChild ?? firstShelf);
+  }, [selectedNotebookId, shelves, notebooksByShelf]);
 
   useEffect(() => {
     if (selectedNote) {
@@ -191,18 +198,10 @@ export default function Notes() {
 
   useEffect(() => {
     if (!selectedNotebookId) return;
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      let cur = notebookById.get(selectedNotebookId);
-      const guard = new Set<string>();
-      while (cur?.parentId && !guard.has(cur.id)) {
-        guard.add(cur.id);
-        next.add(cur.parentId);
-        cur = notebookById.get(cur.parentId);
-      }
-      return next;
-    });
-  }, [selectedNotebookId, notebookById]);
+    const shelfId = getRootShelfId(selectedNotebookId);
+    setSelectedShelfId(shelfId);
+    setExpandedShelves((prev) => new Set(prev).add(shelfId));
+  }, [selectedNotebookId, getRootShelfId]);
 
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -214,20 +213,22 @@ export default function Notes() {
   }, [notes, searchQuery]);
 
   const openCreateNotebook = (parentId: string | null) => {
+    const isShelf = parentId === null;
     setDialog({
       mode: 'createNotebook',
-      title: '新建笔记本',
-      subtitle: parentId ? `父级：${getNotebookPath(parentId)}` : '创建在根目录',
+      title: isShelf ? '新建书架' : '新建笔记本',
+      subtitle: isShelf ? '用于分类管理笔记本' : `书架：${getNotebookPath(parentId)}`,
       value: '',
       parentId
     });
   };
 
   const openRenameNotebook = (id: string, currentName: string) => {
+    const isShelf = notebookById.get(id)?.parentId === null;
     setDialog({
       mode: 'renameNotebook',
-      title: '重命名笔记本',
-      subtitle: '让结构更清晰一点',
+      title: isShelf ? '重命名书架' : '重命名笔记本',
+      subtitle: isShelf ? '让分类更清晰一点' : '让结构更清晰一点',
       value: currentName,
       notebookId: id
     });
@@ -270,12 +271,9 @@ export default function Notes() {
       const parentId = dialog.parentId ?? null;
       const id = createNotebook({ name: v, parentId });
       setSelectedNotebookId(id);
-      setExpanded((prev) => {
-        const next = new Set(prev);
-        next.add(id);
-        if (parentId) next.add(parentId);
-        return next;
-      });
+      const shelfId = parentId ?? id;
+      setSelectedShelfId(shelfId);
+      setExpandedShelves((prev) => new Set(prev).add(shelfId));
       closeDialog();
       return;
     }
@@ -328,13 +326,21 @@ export default function Notes() {
     }
   };
 
-  const toggleExpanded = (id: string) => {
-    setExpanded((prev) => {
+  const toggleShelfExpanded = (shelfId: string) => {
+    setExpandedShelves((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(shelfId)) next.delete(shelfId);
+      else next.add(shelfId);
       return next;
     });
+  };
+
+  const selectNotebook = (notebookId: string, shelfId: string) => {
+    setSelectedShelfId(shelfId);
+    setExpandedShelves((prev) => new Set(prev).add(shelfId));
+    setSelectedNotebookId(notebookId);
+    setIsNotebookSheetOpen(false);
+    setMobilePane('list');
   };
 
   const moveSelectedNotebookToRoot = () => {
@@ -345,92 +351,6 @@ export default function Notes() {
   const openMoveSelectedNote = () => {
     if (!selectedNote) return;
     setMoveDialog({ noteId: selectedNote.id, targetNotebookId: selectedNote.notebookId });
-  };
-
-  const TreeRow = ({ node, depth }: { node: TreeNode; depth: number }) => {
-    const isSelected = node.id === selectedNotebookId;
-    const isExpanded = expanded.has(node.id);
-    const hasChildren = node.children.length > 0;
-
-    return (
-      <div className="select-none">
-        <div
-          className={cn(
-            "group w-full flex items-center gap-2 rounded-2xl px-3 py-2 transition-all duration-300 cursor-pointer border border-transparent",
-            isSelected
-              ? "bg-zinc-900/90 dark:bg-white/90 text-white dark:text-zinc-900 shadow-lg shadow-zinc-900/10 dark:shadow-white/10"
-              : "text-zinc-600 dark:text-zinc-300 hover:bg-white/60 dark:hover:bg-zinc-900/60 hover:shadow-sm"
-          )}
-          style={{ paddingLeft: 12 + depth * 12 }}
-        >
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (hasChildren) toggleExpanded(node.id);
-            }}
-            className={cn(
-              "w-6 h-6 flex items-center justify-center rounded-lg transition-colors",
-              hasChildren ? "opacity-100" : "opacity-0",
-              isSelected ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80"
-            )}
-            aria-label={isExpanded ? "Collapse notebook" : "Expand notebook"}
-          >
-            {hasChildren ? (
-              isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
-            ) : null}
-          </button>
-
-          <button
-            type="button"
-              onClick={() => {
-                setSelectedNotebookId(node.id);
-                setIsNotebookSheetOpen(false);
-                setMobilePane('list');
-              }}
-            className="flex items-center gap-2 flex-1 min-w-0 text-left"
-          >
-            <Folder className={cn("w-4 h-4 shrink-0", isSelected ? "text-white dark:text-zinc-900" : "text-teal-600 dark:text-teal-400")} />
-            <span className="flex-1 text-sm font-medium truncate">{node.name}</span>
-          </button>
-
-          <div className={cn("flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity", isSelected && "opacity-100")}>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); openRenameNotebook(node.id, node.name); }}
-              className={cn(
-                "p-1.5 rounded-xl transition-colors",
-                isSelected ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80"
-              )}
-              title="重命名"
-              aria-label="Rename notebook"
-            >
-              <Pencil className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); removeNotebook(node.id); }}
-              className={cn(
-                "p-1.5 rounded-xl transition-colors",
-                isSelected ? "hover:bg-white/10 dark:hover:bg-black/10" : "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80"
-              )}
-              title="删除"
-              aria-label="Delete notebook"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {hasChildren && isExpanded && (
-          <div className="mt-1 space-y-1">
-            {node.children.map((child) => (
-              <TreeRow key={child.id} node={child} depth={depth + 1} />
-            ))}
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -610,7 +530,7 @@ export default function Notes() {
           <div className="min-w-0">
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">笔记</h1>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 truncate">
-              {selectedNotebookId ? getNotebookPath(selectedNotebookId) : '先选择或创建一个笔记本'}
+              {selectedNotebookId ? getNotebookPath(selectedNotebookId) : '先选择或创建一个书架'}
             </p>
           </div>
 
@@ -620,8 +540,8 @@ export default function Notes() {
               onClick={() => setIsNotebookSheetOpen(true)}
               className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
             >
-              <Folder className="w-4 h-4" />
-              <span>笔记本</span>
+              <BookOpen className="w-4 h-4" />
+              <span>书架</span>
             </button>
             <button
               type="button"
@@ -874,7 +794,7 @@ export default function Notes() {
                     onClick={() => setIsNotebookSheetOpen(true)}
                     className="lg:hidden px-5 py-2.5 rounded-full bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-200 font-medium text-sm shadow-sm"
                   >
-                    选择笔记本
+                    选择书架
                   </button>
                   <button
                     type="button"
@@ -910,7 +830,7 @@ export default function Notes() {
               <div className="p-4 border-b border-white/40 dark:border-zinc-800/60 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   <BookOpen className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                  <span>选择笔记本</span>
+                  <span>书架</span>
                 </div>
                 <button
                   type="button"
@@ -929,19 +849,22 @@ export default function Notes() {
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>新建</span>
+                  <span>新建书架</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => openCreateNotebook(selectedNotebookId)}
+                  onClick={() => {
+                    if (!selectedShelfId) return;
+                    openCreateNotebook(selectedShelfId);
+                  }}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 rounded-xl hover:bg-white/80 dark:hover:bg-zinc-950/60 transition-all shadow-sm"
                 >
-                  <ArrowRight className="w-4 h-4" />
-                  <span>子级</span>
+                  <Folder className="w-4 h-4" />
+                  <span>新建笔记本</span>
                 </button>
               </div>
 
-              {selectedNotebookId && (
+              {selectedNotebookId && notebookById.get(selectedNotebookId)?.parentId !== null && (
                 <div className="px-4 pb-4">
                   <button
                     type="button"
@@ -949,18 +872,146 @@ export default function Notes() {
                     className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white/50 dark:bg-zinc-950/30 backdrop-blur-md border border-zinc-200/40 dark:border-zinc-800/50 rounded-xl hover:bg-white/70 dark:hover:bg-zinc-950/50 transition-all"
                   >
                     <ArrowRight className="w-4 h-4 rotate-180" />
-                    <span>移动到根目录</span>
+                    <span>提升为书架</span>
                   </button>
                 </div>
               )}
 
               <div className="max-h-[70vh] overflow-y-auto px-4 pb-5 space-y-1">
-                {tree.length ? (
-                  tree.map((node) => (
-                    <TreeRow key={node.id} node={node} depth={0} />
-                  ))
+                {shelves.length ? (
+                  shelves.map((shelf) => {
+                    const children = notebooksByShelf.get(shelf.id) ?? [];
+                    const isExpanded = expandedShelves.has(shelf.id);
+                    const isActive = shelf.id === selectedShelfId;
+                    return (
+                      <div
+                        key={shelf.id}
+                        className={cn(
+                          "rounded-[1.75rem] border overflow-hidden bg-white/55 dark:bg-zinc-950/30 backdrop-blur-md transition-colors",
+                          isActive ? "border-teal-400/50 dark:border-teal-500/40" : "border-white/40 dark:border-zinc-800/60"
+                        )}
+                      >
+                        <div className="flex items-stretch gap-2 p-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedShelfId(shelf.id);
+                              if (children.length) toggleShelfExpanded(shelf.id);
+                              else selectNotebook(shelf.id, shelf.id);
+                            }}
+                            className="flex-1 min-w-0 flex items-center gap-3 text-left rounded-2xl px-2 py-2 hover:bg-white/60 dark:hover:bg-zinc-900/60 transition-colors"
+                            aria-label="展开书架"
+                          >
+                            <div className={cn(
+                              "w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border",
+                              isActive ? "bg-teal-500/15 border-teal-500/30" : "bg-white/50 dark:bg-zinc-950/40 border-white/40 dark:border-zinc-800/60"
+                            )}>
+                              <BookOpen className={cn("w-5 h-5", isActive ? "text-teal-700 dark:text-teal-300" : "text-teal-600 dark:text-teal-400")} />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">{shelf.name}</div>
+                              <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                                {children.length ? `${children.length} 本笔记本` : '暂无笔记本'}
+                              </div>
+                            </div>
+                          </button>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); openRenameNotebook(shelf.id, shelf.name); }}
+                              className="p-2 rounded-xl text-zinc-500 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-900/60 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                              aria-label="重命名书架"
+                              title="重命名"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); removeNotebook(shelf.id); }}
+                              className="p-2 rounded-xl text-zinc-500 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-900/60 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                              aria-label="删除书架"
+                              title="删除"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            {children.length ? (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); toggleShelfExpanded(shelf.id); }}
+                                className="p-2 rounded-xl text-zinc-500 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-900/60 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                                aria-label={isExpanded ? '收起书架' : '展开书架'}
+                              >
+                                {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        <AnimatePresence initial={false}>
+                          {children.length > 0 && isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.18 }}
+                              className="px-4 pb-4"
+                            >
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {children.map((nb) => {
+                                  const isCurrent = nb.id === selectedNotebookId;
+                                  return (
+                                    <button
+                                      key={nb.id}
+                                      type="button"
+                                      onClick={() => selectNotebook(nb.id, shelf.id)}
+                                      className={cn(
+                                        "group text-left rounded-2xl border px-3 py-3 transition-colors",
+                                        isCurrent
+                                          ? "bg-zinc-900/90 dark:bg-white/90 border-transparent text-white dark:text-zinc-900 shadow-lg shadow-zinc-900/10 dark:shadow-white/10"
+                                          : "bg-white/50 dark:bg-zinc-950/30 border-white/40 dark:border-zinc-800/60 hover:bg-white/70 dark:hover:bg-zinc-950/50"
+                                      )}
+                                      aria-label="选择笔记本"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                          "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0",
+                                          isCurrent ? "bg-white/10 dark:bg-black/10" : "bg-teal-500/10"
+                                        )}>
+                                          <Folder className={cn("w-5 h-5", isCurrent ? "text-white dark:text-zinc-900" : "text-teal-600 dark:text-teal-400")} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                          <div className={cn("text-sm font-semibold truncate", isCurrent ? "text-white dark:text-zinc-900" : "text-zinc-900 dark:text-zinc-100")}>
+                                            {nb.name}
+                                          </div>
+                                          <div className={cn("text-xs mt-0.5 truncate", isCurrent ? "text-white/70 dark:text-zinc-700" : "text-zinc-400 dark:text-zinc-500")}>
+                                            {getNotebookPath(nb.id)}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="mt-3">
+                                <button
+                                  type="button"
+                                  onClick={() => openCreateNotebook(shelf.id)}
+                                  className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-white/50 dark:bg-zinc-950/30 backdrop-blur-md border border-zinc-200/40 dark:border-zinc-800/50 rounded-xl hover:bg-white/70 dark:hover:bg-zinc-950/50 transition-all"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                  <span>在此书架新建笔记本</span>
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <div className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">还没有笔记本</div>
+                  <div className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">还没有书架</div>
                 )}
               </div>
             </motion.div>

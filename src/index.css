@@ -38,3 +38,16 @@
   font-size: 15px !important;
   line-height: 1.7 !important;
 }
+
+.w-md-editor-content {
+  height: 100% !important;
+  flex: 1 1 auto !important;
+}
+
+.w-md-editor-toolbar {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-color-mode*='dark'] .w-md-editor-toolbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}

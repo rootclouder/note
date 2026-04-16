@@ -178,14 +178,13 @@ export default function Notes() {
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 bg-white/60 dark:bg-zinc-900/50 backdrop-blur-2xl rounded-[2rem] border border-white/40 dark:border-zinc-800/50 shadow-sm" data-color-mode={theme}>
+        <div className="flex-1 min-h-0 bg-white/60 dark:bg-zinc-900/50 backdrop-blur-2xl rounded-[2rem] border border-white/40 dark:border-zinc-800/50 shadow-sm flex flex-col" data-color-mode={theme}>
           <MDEditor
             value={draftContent}
             onChange={(val) => setDraftContent(val || '')}
             preview="live"
             previewOptions={{ rehypePlugins: [[rehypeSanitize]] }}
-            height="100%"
-            className="!border-0 !shadow-none !rounded-[2rem] h-full bg-transparent overflow-hidden text-sm md:text-base"
+            className="!border-0 !shadow-none !rounded-[2rem] flex-1 bg-transparent overflow-hidden text-sm md:text-base flex flex-col"
             textareaProps={{ placeholder: '写下你的想法…（支持 Markdown）' }}
           />
         </div>

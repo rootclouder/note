@@ -52,8 +52,8 @@ function Navigation() {
   if (location.pathname === '/welcome') return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 sm:top-0 sm:bottom-auto sm:left-auto sm:right-auto sm:w-64 sm:h-screen bg-white/60 dark:bg-black/60 backdrop-blur-xl border-t sm:border-t-0 sm:border-r border-zinc-200/50 dark:border-zinc-800/50 p-4 z-50 transition-colors duration-500">
-      <div className="flex sm:flex-col justify-around sm:justify-start gap-2 h-full sm:pt-8 relative">
+    <nav className="fixed bottom-0 left-0 right-0 sm:top-0 sm:bottom-auto sm:left-auto sm:right-auto sm:w-64 sm:h-screen bg-white/60 dark:bg-black/60 backdrop-blur-xl border-t sm:border-t-0 sm:border-r border-zinc-200/50 dark:border-zinc-800/50 p-4 z-50 transition-colors duration-500 flex flex-row sm:flex-col">
+      <div className="flex sm:flex-col justify-around sm:justify-start gap-2 flex-1 sm:pt-8 relative">
         {navItems.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path;
           return (
@@ -75,25 +75,25 @@ function Navigation() {
             </Link>
           );
         })}
+      </div>
 
-        <div className="hidden sm:flex mt-auto pt-8 items-center justify-center flex-col gap-4">
-          <ThemeToggle />
-          
-          {currentUser && (
-            <button
-              onClick={() => {
-                logout();
-                setHasSeenWelcome(false);
-                window.location.href = '/welcome';
-              }}
-              className="flex items-center gap-2 px-4 py-2 mt-4 text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-xl transition-colors"
-              title="退出登录"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>退出 ({currentUser})</span>
-            </button>
-          )}
-        </div>
+      <div className="hidden sm:flex mt-auto pt-8 items-center justify-center flex-col gap-4">
+        <ThemeToggle />
+        
+        {currentUser && (
+          <button
+            onClick={() => {
+              logout();
+              setHasSeenWelcome(false);
+              window.location.href = '/welcome';
+            }}
+            className="flex items-center justify-center gap-2 w-full px-4 py-3 mt-2 text-sm font-medium text-red-500/80 dark:text-red-400/80 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
+            title="退出登录"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>退出 ({currentUser})</span>
+          </button>
+        )}
       </div>
     </nav>
   );
